@@ -8,9 +8,9 @@ import qrcode
 from concurrent.futures import ThreadPoolExecutor
 import RPi.GPIO as GPIO, time
 
-#déclaration des ports GPIO que l'on utilise
+# déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(2, GPIO.IN )
+GPIO.setup(2, GPIO.IN)
 GPIO.setup(3, GPIO.IN)
 
 # Initialisation de Pygame
@@ -134,7 +134,6 @@ def download(home, path):
     else:
         racine = f"{home}/photos/pas_droit_a_l_image"
 
-    
     qr_data = "https://www.example.com"
     qr_filename = "qrcode.png"
     with ThreadPoolExecutor() as executor:
@@ -238,14 +237,14 @@ def main():
     in_welcome_screen = False
     config_usb = 1
     while running:
-        etat=GPIO.input (2)
+        etat = GPIO.input(2)
         print(etat)
-           
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z or etat==0:
+                if event.key == pygame.K_z or etat == 0:
                     in_welcome_screen = not in_welcome_screen
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
                 for i in range(len(toggles)):
@@ -263,37 +262,29 @@ def main():
                     print("cles_usb")
                     device_node = monitor_usb(home)
                     path_usb_droit_a__l_image = creationdossier_usb(
-               device_node, field="photos/droit_a_l_image"
-                            )
-                path_usb_pas_droit_a__l_image = creationdossier_usb(
-                                device_node, field="photos/pas_droit_a_l_image"
-                            )
+                        device_node, field="photos/droit_a_l_image"
+                    )
+                    path_usb_pas_droit_a__l_image = creationdossier_usb(
+                        device_node, field="photos/pas_droit_a_l_image"
+                    )
 
                 config_usb += config_usb
                 print(config_usb)
 
                 timer()
                 os.system(
-                            f"gphoto2 --capture-image-and-download --filename {os.environ.get('HOME')}/documents/tmp/capt_%y_%m_%d-%H_%M_%S.jpg"
-                        )
+                    f"gphoto2 --capture-image-and-download --filename {os.environ.get('HOME')}/documents/tmp/capt_%y_%m_%d-%H_%M_%S.jpg"
+                )
                 if os.environ.get("DROIT_A_L_IMAGE"):
                     # on copie l'image dans le dossier droit
-                    os.system(
-                                f"cp {home}/tmp/*jpg {home}/photos/pas_droit_a_l_image"
-                            )
+                    os.system(f"cp {home}/tmp/*jpg {home}/photos/pas_droit_a_l_image")
                     if os.environ.get("CLES_USB"):
-                        os.system(
-                                    f"cp {home}/tmp/*jpg {path_usb_pas_droit_a__l_image}"
-                                )
+                        os.system(f"cp {home}/tmp/*jpg {path_usb_pas_droit_a__l_image}")
 
                 else:
-                    os.system(
-                                f"cp {home}/tmp/*jpg {home}/photos/droit_a_l_image"
-                            )
+                    os.system(f"cp {home}/tmp/*jpg {home}/photos/droit_a_l_image")
                     if os.environ.get("CLES_USB"):
-                        os.system(
-                                    f"cp {home}/tmp/*jpg {path_usb_droit_a__l_image}"
-                                )
+                        os.system(f"cp {home}/tmp/*jpg {path_usb_droit_a__l_image}")
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
                 affichage(path=path)
