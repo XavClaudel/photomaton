@@ -238,7 +238,6 @@ def main():
     config_usb = 1
     while running:
         etat = GPIO.input(2)
-        print(etat)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -269,7 +268,6 @@ def main():
                     )
 
                 config_usb += config_usb
-                print(config_usb)
 
                 timer()
                 os.system(
