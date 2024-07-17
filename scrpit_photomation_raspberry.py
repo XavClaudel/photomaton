@@ -12,7 +12,7 @@ pygame.init()
 
 # Dimensions de la fenêtre
 WIDTH, HEIGHT = 640, 480
-fenetre = pygame.display.set_mode((WIDTH, HEIGHT))
+fenetre = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
 
 # Polices
 font_large = pygame.font.Font(None, 120)
@@ -79,7 +79,7 @@ def set_environment_variable(index, state):
 
 
 def timer():
-    fenetre = pygame.display.set_mode((640, 480))
+    fenetre = pygame.display.set_mode((640, 480), pygame.FULLSCREEN)
     for i in range(5, -1, -1):
         decompte = pygame.image.load(f"images/{i}.jpg").convert()
         fenetre.blit(pygame.transform.scale(decompte, (640, 480)), (0, 0))
@@ -174,7 +174,7 @@ def creationdossier_usb(device_node, field):
 
 def affichage(path):
     # affichage de l'image
-    fenetre = pygame.display.set_mode((640, 480))
+    fenetre = pygame.display.set_mode((640, 480), pygame.FULLSCREEN)
     affichage = pygame.image.load(path).convert()
     fenetre.blit(pygame.transform.scale(affichage, (640, 480)), (0, 0))
     pygame.display.flip()
