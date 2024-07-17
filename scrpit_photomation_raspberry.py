@@ -239,13 +239,13 @@ def main():
     config_usb = 1
     while running:
         etat=GPIO.input (2)
-        print(etat)    
+        print(etat)
+           
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z or etat==0:
-                    in_welcome_screen = not in_welcome_screen
+            elif etat == 0 :
+                in_welcome_screen = not in_welcome_screen
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
                 for i in range(len(toggles)):
                     toggle_rect = pygame.Rect(450, 100 + i * 100, 60, 30)
