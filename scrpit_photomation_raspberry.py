@@ -238,9 +238,9 @@ def main():
     in_welcome_screen = False
     config_usb = 1
     while running:
-    etat=GPIO.input (2)
-    print(etat)    
-    for event in pygame.event.get():
+        etat=GPIO.input (2)
+        print(etat)    
+        for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
