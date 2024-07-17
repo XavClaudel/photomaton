@@ -6,6 +6,12 @@ import pyudev
 import subprocess
 import qrcode
 from concurrent.futures import ThreadPoolExecutor
+import RPi.GPIO as GPIO, time
+
+#déclaration des ports GPIO que l'on utilise
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(2, GPIO.IN )
+GPIO.setup(3, GPIO.IN)
 
 # Initialisation de Pygame
 pygame.init()
@@ -232,11 +238,13 @@ def main():
     in_welcome_screen = False
     config_usb = 1
     while running:
-        for event in pygame.event.get():
+    etat=GPIO.input (2)
+    print(etat)    
+    for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z:
+                if event.key == pygame.K_z :
                     in_welcome_screen = not in_welcome_screen
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
                 for i in range(len(toggles)):
