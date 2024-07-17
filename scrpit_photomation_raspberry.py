@@ -244,8 +244,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif etat == 0 :
-                in_welcome_screen = not in_welcome_screen
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_z or etat==0:
+                    in_welcome_screen = not in_welcome_screen
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
                 for i in range(len(toggles)):
                     toggle_rect = pygame.Rect(450, 100 + i * 100, 60, 30)
@@ -256,64 +257,62 @@ def main():
         if in_welcome_screen:
             draw_welcome_screen(screen=fenetre)
             # print(os.environ)
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_a:
-                        home = f"{os.environ.get('HOME')}/documents"
-                        if os.environ.get("CLES_USB") and config_usb == 1:
-                            print("cles_usb")
-                            device_node = monitor_usb(home)
-                            path_usb_droit_a__l_image = creationdossier_usb(
-                                device_node, field="photos/droit_a_l_image"
+            if etat == 0:
+                home = f"{os.environ.get('HOME')}/documents"
+                if os.environ.get("CLES_USB") and config_usb == 1:
+                    print("cles_usb")
+                    device_node = monitor_usb(home)
+                    path_usb_droit_a__l_image = creationdossier_usb(
+               device_node, field="photos/droit_a_l_image"
                             )
-                            path_usb_pas_droit_a__l_image = creationdossier_usb(
+                path_usb_pas_droit_a__l_image = creationdossier_usb(
                                 device_node, field="photos/pas_droit_a_l_image"
                             )
 
-                            config_usb += config_usb
-                            print(config_usb)
+                config_usb += config_usb
+                print(config_usb)
 
-                        timer()
-                        os.system(
+                timer()
+                os.system(
                             f"gphoto2 --capture-image-and-download --filename {os.environ.get('HOME')}/documents/tmp/capt_%y_%m_%d-%H_%M_%S.jpg"
                         )
-                        if os.environ.get("DROIT_A_L_IMAGE"):
-                            # on copie l'image dans le dossier droit
-                            os.system(
+                if os.environ.get("DROIT_A_L_IMAGE"):
+                    # on copie l'image dans le dossier droit
+                    os.system(
                                 f"cp {home}/tmp/*jpg {home}/photos/pas_droit_a_l_image"
                             )
-                            if os.environ.get("CLES_USB"):
-                                os.system(
+                    if os.environ.get("CLES_USB"):
+                        os.system(
                                     f"cp {home}/tmp/*jpg {path_usb_pas_droit_a__l_image}"
                                 )
 
-                        else:
-                            os.system(
+                else:
+                    os.system(
                                 f"cp {home}/tmp/*jpg {home}/photos/droit_a_l_image"
                             )
-                            if os.environ.get("CLES_USB"):
-                                os.system(
+                    if os.environ.get("CLES_USB"):
+                        os.system(
                                     f"cp {home}/tmp/*jpg {path_usb_droit_a__l_image}"
                                 )
 
-                        path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
-                        affichage(path=path)
-                        print("fin d'affichage")
-                        os.system(f" rm {home}/tmp/*jpg")
-                        # Afficher la photo
-                        if os.environ.get("PRINT"):
-                            print_image()
-                            pass
+                path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
+                affichage(path=path)
+                print("fin d'affichage")
+                os.system(f" rm {home}/tmp/*jpg")
+                # Afficher la photo
+                if os.environ.get("PRINT"):
+                    print_image()
+                    pass
 
-                        if os.environ.get("DOWNLOAD"):
-                            download(home, path)
-                            # genration qrcode
+                if os.environ.get("DOWNLOAD"):
+                    download(home, path)
+                    # genration qrcode
 
-                        draw_welcome_screen(screen=fenetre)
+                    draw_welcome_screen(screen=fenetre)
 
-                    if event.key == pygame.K_q:
-                        pygame.quit()
-                        sys.exit()
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
         else:
             draw_settings_screen(screen=fenetre, toggles=toggles)
 
