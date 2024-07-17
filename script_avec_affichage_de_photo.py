@@ -1,15 +1,15 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 import pygame
-from pygame.locals import *
+#from pygame.locals import *
 import time
 import os
 import sys
-import RPi.GPIO as GPIO, time
-#déclaration des ports GPIO que l'on utilise
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(2, GPIO.IN )
-GPIO.setup(3, GPIO.IN)
+# import RPi.GPIO as GPIO, time
+# #déclaration des ports GPIO que l'on utilise
+# GPIO.setmode(GPIO.BCM)
+# GPIO.setup(2, GPIO.IN )
+# GPIO.setup(3, GPIO.IN)
 
 def timer () :
 	#Création de la fenêtre 5
@@ -108,10 +108,11 @@ bienvenue ()
 while True:
 # Si commande via le GPIO décommenter la partie 1, si commande via le clavier décommenter la partie 2
 #Partie 1
-#	 ecoute du GPIO2
-	etat=GPIO.input (2)
-#	 ecoute du GPIO 3
-	etat2=GPIO.input(3)
+# #	 ecoute du GPIO2
+# 	etat=GPIO.input (2)
+# #	 ecoute du GPIO 3
+# 	etat2=GPIO.input(3)
+	etat =10
 	
 	if (etat==0):
 		os.system ("rm-r /home/pi/Documents/photomaton/tmp")
@@ -163,51 +164,50 @@ while True:
 		os.system("rm /home/pi/Documents/photomaton/tmp/1.jpg")
 		merci ()				
 		bienvenue ()
-#else:
-#Partie 2
-#	for event in pygame.event.get():    #Attente des événements
+
+	for event in pygame.event.get():    #Attente des événements
 			
 
-#			if event.type == KEYDOWN:
+			if event.type == KEYDOWN:
 
-#				if event.key == K_a: #Si "a" est  préssé 
-#					timer ()
+				if event.key == K_a: #Si "a" est  préssé 
+					timer ()
 					#montage de la clé
-	#				os.system ("mount /dev/sda1 /media/pi/PHOTO")
-#					creationdossierdroit ()
-					# prise de photo
-#					os.system("gphoto2 --capture-image-and-download --filename /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/capt_%y_%m_%d-%H_%M_%S.jpg")
+					os.system ("mount /dev/sda1 /media/pi/PHOTO")
+					creationdossierdroit ()
+					#prise de photo
+					os.system("gphoto2 --capture-image-and-download --filename /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/capt_%y_%m_%d-%H_%M_%S.jpg")
 					#on copie l'image dans le dossier droit
-#					os.system ("cp /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/*jpg /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/droits")
+					os.system ("cp /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/*jpg /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/droits")
 					#on renomme l'image
-#					os.system ("mv /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/*jpg /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/1.jpg")
-#					affichage ()
+					os.system ("mv /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/*jpg /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/1.jpg")
+					affichage ()
 					#démontage de la clé
-					#os.system ("umount /media/pi/PHOTO")
+					os.system ("umount /media/pi/PHOTO")
 					#on supprime l'image du fichier tmp
-#					os.system (" rm /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/1.jpg")
-#					merci ()				
-#					bienvenue ()
+					os.system (" rm /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/1.jpg")
+					merci ()				
+					bienvenue ()
 								
-#				if event.key == K_z: #Si "z" est préssé
-#					timer ()
-					#os.system ("mount /dev/sda1 /media/pi/PHOTO")
-#					creationdossierpasdroit ()
-					# prise de photo
-#					os.system("gphoto2 --capture-image-and-download --filename /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/capt_%y_%m_%d-%H_%M_%S.jpg")
-					# on copie l'image dans le dossier pas droits
-#					os.system ("cp /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/*jpg /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/pasdroits")
+				if event.key == K_z: #Si "z" est préssé
+					timer ()
+					os.system ("mount /dev/sda1 /media/pi/PHOTO")
+					creationdossierpasdroit ()
+					#prise de photo
+					os.system("gphoto2 --capture-image-and-download --filename /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/capt_%y_%m_%d-%H_%M_%S.jpg")
+					#on copie l'image dans le dossier pas droits
+					os.system ("cp /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/*jpg /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/pasdroits")
 					#on renomme l'image
-#					os.system ("mv /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/*jpg /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/1.jpg")
-#					fenetre = pygame.display.set_mode((640, 480), pygame.FULLSCREEN)
-#					affichage ()
-#					time.sleep (3)
+					os.system ("mv /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/*jpg /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/1.jpg")
+					fenetre = pygame.display.set_mode((640, 480), pygame.FULLSCREEN)
+					affichage ()
+					time.sleep (3)
 					#démontage de la clé
-					#os.system ("umount /media/pi/PHOTO")
+					os.system ("umount /media/pi/PHOTO")
 					#on supprime l'image du fichier tmp
-#					os.system (" rm /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/1.jpg")
-#					merci ()
-#					bienvenue ()
-#				if event.key == K_e : #Si "e" est préssé
+					os.system (" rm /home/xav/Nextcloud/dev/photomaton/script_affichage/ordi/avec_choix_droit_a_l_image/test/photos/tmp/1.jpg")
+					merci ()
+					bienvenue ()
+				if event.key == K_e : #Si "e" est préssé
 					#quitter les fenêtres
-#					pygame.quit ()
+					pygame.quit ()
