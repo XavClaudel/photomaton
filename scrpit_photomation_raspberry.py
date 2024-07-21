@@ -238,7 +238,7 @@ def main():
     config_usb = 1
     while running:
         etat = GPIO.input(2)
-        print(etat)
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -289,17 +289,19 @@ def main():
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
                 affichage(path=path)
                 print("fin d'affichage")
-                os.system(f" rm {home}/tmp/*jpg")
                 # Afficher la photo
                 if os.environ.get("PRINT"):
-                    print_image()
-                    pass
+                    x=os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
+                    print(x)
+                    #print_image()
+                    
 
                 if os.environ.get("DOWNLOAD"):
                     download(home, path)
                     # genration qrcode
+                os.system(f" rm {home}/tmp/*jpg")
 
-                    draw_welcome_screen(screen=fenetre)
+                draw_welcome_screen(screen=fenetre)
 
                 if event.key == pygame.K_q:
                     pygame.quit()
