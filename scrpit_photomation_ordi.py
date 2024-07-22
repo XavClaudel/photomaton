@@ -31,7 +31,7 @@ env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
 toggles = [os.getenv(var) == "TRUE" for var in env_vars]
 
 
-def draw_toggle_switch(screen, position, state):
+def draw_toggle_switch(screen:pygame, position:tuple, state:list):
     pygame.draw.rect(screen, WHITE, (*position, 60, 30), border_radius=15)
     if state:
         pygame.draw.circle(screen, GREEN, (position[0] + 45, position[1] + 15), 15)
@@ -39,17 +39,17 @@ def draw_toggle_switch(screen, position, state):
         pygame.draw.circle(screen, RED, (position[0] + 15, position[1] + 15), 15)
 
 
-def draw_settings_screen(screen, toggles):
+def draw_settings_screen(screen:pygame, toggles:list):
     screen.fill(BLACK)
     params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
     for i, param in enumerate(params):
         text = font_small.render(param, 1, WHITE)
         screen.blit(text, (100, 100 + i * 100))
-        draw_toggle_switch(screen, (450, 100 + i * 100), toggles[i])
+        draw_toggle_switch(screen=screen, position=(450, 100 + i * 100), state=toggles[i])
     pygame.display.flip()
 
 
-def draw_welcome_screen(screen):
+def draw_welcome_screen(screen:pygame):
     screen.fill(BLACK)
     text = font_large.render("Bienvenue", 1, WHITE)
     if os.environ.get("DROIT_A_L_IMAGE"):
@@ -74,15 +74,15 @@ def draw_welcome_screen(screen):
     pygame.display.flip()
 
 
-def set_environment_variable(index, state):
+def set_environment_variable(index:int, state:list):
     os.environ[env_vars[index]] = "TRUE" if state else "FALSE"
 
 
 def timer():
-    fenetre = pygame.display.set_mode((640, 480))
+    fenetre = pygame.display.set_mode((WIDTH, HEIGHT))
     for i in range(5, -1, -1):
         decompte = pygame.image.load(f"images/{i}.jpg").convert()
-        fenetre.blit(pygame.transform.scale(decompte, (640, 480)), (0, 0))
+        fenetre.blit(pygame.transform.scale(decompte, (WIDTH, HEIGHT)), (0, 0))
         pygame.display.flip()
         time.sleep(1)
 
@@ -97,12 +97,16 @@ def init():
     creationdossier("documents/tmp")
 
 
-def print_image():
-    print("print")
-    time.sleep(5)
+def print_image(path :str,screen:pygame):
+        print("here")
+        fenetre = pygame.display.set_mode((WIDTH, HEIGHT))
+        fenetre.fill(BLACK)
+        text_5 = font_large.render("Voulez_vous imprimez votre photo ?", 1, WHITE)
+        fenetre.blit(text_5, (100, 0))
+        pygame.display.flip()
+        
 
-
-def start_http_server(racine):
+def start_http_server(racine:str):
     os.system(f"cd {racine} && python3 -m http.server 9999")
 
 
@@ -121,7 +125,7 @@ def generate_qr_code(data="https://www.example.com", filename="qrcode.png"):
     print(f"QR Code generated and saved as {filename}")
 
 
-def download(home, path):
+def download(home:str, path:str):
     if os.environ.get("DROIT_A_L_IMAGE"):
         racine = f"{home}/photos/droit_a_l_image"
 
@@ -144,7 +148,7 @@ def download(home, path):
                 print(f"An error occurred: {e}")
 
 
-def creationdossier(sous_chemin):
+def creationdossier(sous_chemin:str):
     home_dir = os.getenv("HOME")  # Récupérer la variable d'environnement HOME
     if home_dir is None:
         raise EnvironmentError("La variable d'environnement HOME n'est pas définie.")
@@ -158,7 +162,7 @@ def creationdossier(sous_chemin):
         print(f"Le dossier '{dir_path}' existe déjà.")
 
 
-def creationdossier_usb(device_node, field):
+def creationdossier_usb(device_node:str, field:str) ->str:
     home_dir = f"/media/{device_node.split('/')[2]}/{field}"  # Récupérer la variable d'environnement HOME
     if home_dir is None:
         raise EnvironmentError("La variable d'environnement HOME n'est pas définie.")
@@ -172,11 +176,11 @@ def creationdossier_usb(device_node, field):
     return home_dir
 
 
-def affichage(path):
+def affichage(path:str):
     # affichage de l'image
-    fenetre = pygame.display.set_mode((640, 480))
+    fenetre = pygame.display.set_mode((WIDTH, HEIGHT))
     affichage = pygame.image.load(path).convert()
-    fenetre.blit(pygame.transform.scale(affichage, (640, 480)), (0, 0))
+    fenetre.blit(pygame.transform.scale(affichage, (WIDTH, HEIGHT)), (0, 0))
     pygame.display.flip()
     time.sleep(5)
 
@@ -188,7 +192,7 @@ def montage_cles_usb():
     os.system(f"mount /dev/sdc1 {dir_path}")
 
 
-def mount_usb(device_node, mount_point):
+def mount_usb(device_node : str, mount_point : str):
     """
     Monte le périphérique USB.
     :param device_node: Le noeud de périphérique (par exemple, /dev/sdb1).
@@ -204,7 +208,7 @@ def mount_usb(device_node, mount_point):
         print(f"Une erreur s'est produite: {e}")
 
 
-def monitor_usb(home):
+def monitor_usb(home:str) -> str:
     """
     Surveille les événements de connexion de périphériques USB et monte les nouveaux volumes.
     """
@@ -230,7 +234,7 @@ def main():
     init()
     running = True
     in_welcome_screen = False
-    config_usb = 1
+    config_usb = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -243,18 +247,18 @@ def main():
                     toggle_rect = pygame.Rect(450, 100 + i * 100, 60, 30)
                     if toggle_rect.collidepoint(event.pos):
                         toggles[i] = not toggles[i]
-                        set_environment_variable(i, toggles[i])
+                        set_environment_variable(index=i, state=toggles[i])
 
         if in_welcome_screen:
+
             draw_welcome_screen(screen=fenetre)
-            # print(os.environ)
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a:
                         home = f"{os.environ.get("HOME")}/documents"
-                        if os.environ.get("CLES_USB") and config_usb == 1:
+                        if os.environ.get("CLES_USB") and config_usb:
                             print("cles_usb")
-                            device_node = monitor_usb(home)
+                            device_node = monitor_usb(home=home)
                             path_usb_droit_a__l_image = creationdossier_usb(
                                 device_node, field="photos/droit_a_l_image"
                             )
@@ -262,8 +266,7 @@ def main():
                                 device_node, field="photos/pas_droit_a_l_image"
                             )
 
-                            config_usb += config_usb
-                            print(config_usb)
+                            config_usb = False
 
                         timer()
                         os.system(
@@ -291,21 +294,28 @@ def main():
                         path = f"{home}/tmp/{os.listdir(f"{home}/tmp/")[0]}"
                         affichage(path=path)
                         print("fin d'affichage")
-                        os.system(f" rm {home}/tmp/*jpg")
+                        
                         # Afficher la photo
                         if os.environ.get("PRINT"):
-                            print_image()
-                            pass
+                            impression = True
+                            print("OK")
+                            print_image(path= path,screen=fenetre)
+                            for event in pygame.event.get():
+                                if event.type == pygame.KEYDOWN:
+                                    if event.key == pygame.K_p and impression:
+                                        x=os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
+                                        print(x)
+                                        time.sleep(60)
+                                        draw_welcome_screen(screen=fenetre)
 
                         if os.environ.get("DOWNLOAD"):
-                            download(home, path)
+                            download(home=home, path=path)
                             # genration qrcode
 
+                        os.system(f" rm {home}/tmp/*jpg")
                         draw_welcome_screen(screen=fenetre)
 
-                    if event.key == pygame.K_q:
-                        pygame.quit()
-                        sys.exit()
+                    
         else:
             draw_settings_screen(screen=fenetre, toggles=toggles)
 
