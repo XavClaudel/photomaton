@@ -258,18 +258,18 @@ def main():
                     PRINT_IMAGE= True
 
                     draw_print_screen(screen=screen,path=path)
+                    
                     if etat_print== 0 and PRINT_IMAGE:
                         os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
                         time.sleep(60)
                         PRINT_IMAGE= False
-
+                        draw_welcome_screen(screen=screen)
 
                 # if os.environ.get("DOWNLOAD"):
                 #     download(home, path)
                 #     # genration qrcode
+ 
                 os.system(f" rm {home}/tmp/*jpg")
-                draw_welcome_screen(screen=screen)
-
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
