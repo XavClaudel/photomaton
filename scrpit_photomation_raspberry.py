@@ -257,6 +257,7 @@ def main():
                 # Afficher la photo
                 if os.environ.get("PRINT"):
                     running_print= True
+                    etat_declencheur == 0
                     while running_print:
                         print("OK")
                         print(etat_print)
