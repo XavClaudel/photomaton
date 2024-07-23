@@ -199,13 +199,14 @@ def main():
     DECLENCHEUR = False
     PRINT_IMAGE = False
     while running:
-        etat = GPIO.input(2)
+        etat_declencheur = GPIO.input(2)
+        etat_print = GPIO.input(3)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z or etat == 0:
+                if event.key == pygame.K_z or etat_declencheur == 0:
                     in_welcome_screen = not in_welcome_screen
                     DECLENCHEUR = True
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
@@ -218,7 +219,7 @@ def main():
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
             
-            if etat == 0 and DECLENCHEUR:
+            if etat_declencheur == 0 and DECLENCHEUR:
                 home = f"{os.environ.get('HOME')}/documents"
                 if os.environ.get("CLES_USB") and config_usb == 1:
                     print("cles_usb")
@@ -249,13 +250,13 @@ def main():
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
                 print("fin d'affichage")
-                os.system(f" rm {home}/tmp/*jpg")
+                
                 # Afficher la photo
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE= True
 
                     draw_print_screen(screen=screen,path=path)
-                    if etat== 0 and PRINT_IMAGE:
+                    if etat_print== 0 and PRINT_IMAGE:
                         os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
                         time.sleep(60)
                         PRINT_IMAGE= False
@@ -264,8 +265,8 @@ def main():
                 # if os.environ.get("DOWNLOAD"):
                 #     download(home, path)
                 #     # genration qrcode
-
-                    draw_welcome_screen(screen=screen)
+                os.system(f" rm {home}/tmp/*jpg")
+                draw_welcome_screen(screen=screen)
 
                 if event.key == pygame.K_q:
                     pygame.quit()
