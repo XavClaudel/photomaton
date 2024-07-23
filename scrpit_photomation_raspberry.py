@@ -253,22 +253,21 @@ def main():
                 time.sleep(5)
                 print("fin d'affichage")
                 
-                # Afficher la photo
-                if os.environ.get("PRINT"):
-                    PRINT_IMAGE= True
-                    print("here")
-                    in_welcome_screen = not in_welcome_screen
-                    draw_print_screen(screen=screen,path=path)
-                    print(etat_declencheur)
-                    print(etat_print)
-                    if etat_print== 0 and PRINT_IMAGE:
-                        print("OK")
-                        os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
-                        time.sleep(60)
-                        PRINT_IMAGE= False
-                        os.system(f" rm {home}/tmp/*jpg")
-                        draw_welcome_screen(screen=screen)
-                        in_welcome_screen = True
+            # Afficher la photo
+            if os.environ.get("PRINT"):
+                PRINT_IMAGE= True
+                print("here")
+                draw_print_screen(screen=screen,path=path)
+                print(etat_declencheur)
+                print(etat_print)
+                if etat_print== 0 and PRINT_IMAGE:
+                    print("OK")
+                    os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
+                    time.sleep(60)
+                    PRINT_IMAGE= False
+                    os.system(f" rm {home}/tmp/*jpg")
+                    draw_welcome_screen(screen=screen)
+    
 
                 # if os.environ.get("DOWNLOAD"):
                 #     download(home, path)
