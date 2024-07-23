@@ -217,7 +217,7 @@ def main():
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
             DECLENCHEUR = True
-            if  GPIO.add_event_detect(2, GPIO.FALLING) and DECLENCHEUR:
+            if  GPIO.event_detected(2) and DECLENCHEUR:
                 home = f"{os.environ.get('HOME')}/documents"
                 if os.environ.get("CLES_USB") and config_usb == 1:
                     print("cles_usb")
@@ -256,7 +256,7 @@ def main():
 
                     draw_print_screen(screen=screen,path=path)
                    
-                    if  GPIO.add_event_detect(2, GPIO.FALLING) and PRINT_IMAGE:
+                    if  GPIO.event_detected(2) and PRINT_IMAGE:
                         print("here")
                         #os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
                         time.sleep(60)
