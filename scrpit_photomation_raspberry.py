@@ -253,13 +253,14 @@ def main():
                 affichage(path=path)
                 time.sleep(5)
                 print("fin d'affichage")
-                
+                GPIO.cleanup()
                 # Afficher la photo
                 if os.environ.get("PRINT"):
                     running_print= True
                     while running_print:
                         print("OK")
                         print(etat_print)
+                        print(etat_declencheur)
                         draw_print_screen(screen=screen,path=path)
                         if etat_print== 0 and PRINT_IMAGE:
                             
