@@ -190,7 +190,7 @@ env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
 
 # États initiaux des boutons glissants
 toggles = [os.getenv(var) == "TRUE" for var in env_vars]
-
+GPIO.setup(2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 def main():
     init()
     running = True
@@ -199,7 +199,7 @@ def main():
     DECLENCHEUR = False
     PRINT_IMAGE = False
     while running:
-        etat = GPIO.input(2)
+        #etat = GPIO.input(2)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -217,7 +217,7 @@ def main():
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
             DECLENCHEUR = True
-            if etat == 0 and DECLENCHEUR:
+            if  GPIO.add_event_detect(2, GPIO.FALLING) and DECLENCHEUR:
                 home = f"{os.environ.get('HOME')}/documents"
                 if os.environ.get("CLES_USB") and config_usb == 1:
                     print("cles_usb")
@@ -230,6 +230,7 @@ def main():
                     )
 
                 config_usb += config_usb
+                DECLENCHEUR = False
 
                 timer()
                 os.system(
@@ -254,9 +255,8 @@ def main():
                     PRINT_IMAGE= True
 
                     draw_print_screen(screen=screen,path=path)
-                    etat == 1
-                    print (etat)
-                    if etat== 0 and PRINT_IMAGE:
+                   
+                    if  GPIO.add_event_detect(2, GPIO.FALLING) and PRINT_IMAGE:
                         print("here")
                         #os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
                         time.sleep(60)
