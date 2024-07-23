@@ -259,6 +259,7 @@ def main():
                     running_print= True
                     while running_print:
                         print("OK")
+                        print(etat_print)
                         draw_print_screen(screen=screen,path=path)
                         if etat_print== 0 and PRINT_IMAGE:
                             
