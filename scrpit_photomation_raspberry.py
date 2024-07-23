@@ -198,6 +198,7 @@ def main():
     config_usb = 1
     DECLENCHEUR = False
     PRINT_IMAGE = False
+    WELCOME_SCREEN = True
     while running:
         etat_declencheur = GPIO.input(2)
         etat_print = GPIO.input(3)
@@ -217,7 +218,8 @@ def main():
                         set_environment_variable(i, toggles[i])
 
         if in_welcome_screen:
-            draw_welcome_screen(screen=screen)
+            if WELCOME_SCREEN:
+                draw_welcome_screen(screen=screen)
             
             if etat_declencheur == 0 and DECLENCHEUR:
                 home = f"{os.environ.get('HOME')}/documents"
@@ -257,8 +259,8 @@ def main():
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE= True
                     print("here")
+                    WELCOME_SCREEN = False
                     draw_print_screen(screen=screen,path=path)
-                    time.sleep(10)
                     print(etat_declencheur)
                     print(etat_print)
                     if etat_print== 0 and PRINT_IMAGE:
@@ -267,7 +269,7 @@ def main():
                         time.sleep(60)
                         PRINT_IMAGE= False
                         os.system(f" rm {home}/tmp/*jpg")
-                        draw_welcome_screen(screen=screen)
+                        WELCOME_SCREEN = True
     
 
                 # if os.environ.get("DOWNLOAD"):
