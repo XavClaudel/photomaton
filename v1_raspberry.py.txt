@@ -1,0 +1,97 @@
+import os
+import time
+import pygame
+import RPi.GPIO as GPIO
+
+# Initialisation des GPIO
+GPIO.setmode(GPIO.BCM)
+BUTTON_PIN_2 = 2
+BUTTON_PIN_3 = 3
+GPIO.setup(BUTTON_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(BUTTON_PIN_3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+# Initialisation de Pygame
+pygame.init()
+screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("Interface Pygame")
+
+# Couleurs
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+# Fonts
+font = pygame.font.Font(None, 74)
+small_font = pygame.font.Font(None, 36)
+
+# Variables d'état
+show_image = False
+print_image = os.getenv('PRINT_IMAGE', 'false').lower() == 'true'
+start_time = None
+
+# Fonction pour récupérer une image
+def get_image():
+    global show_image, start_time
+    # Ici vous pouvez ajouter le code pour capturer ou charger l'image
+    show_image = True
+    start_time = time.time()
+    print("Image captured")
+
+# Fonction pour imprimer l'image
+def print_picture():
+    print("Printing image...")
+
+def main():
+    global show_image, start_time
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Vérifiez les boutons GPIO
+        if GPIO.input(BUTTON_PIN_2) == GPIO.LOW:
+            get_image()
+            time.sleep(0.3)  # Anti-rebond
+
+        if show_image and time.time() - start_time >= 5:
+            if print_image:
+                screen.fill(WHITE)
+                text = font.render("Impression", True, BLACK)
+                screen.blit(text, (250, 250))
+                pygame.display.flip()
+
+                start_time = time.time()
+                while time.time() - start_time < 10:
+                    if GPIO.input(BUTTON_PIN_3) == GPIO.LOW:
+                        print_picture()
+                        time.sleep(0.3)  # Anti-rebond
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            running = False
+                    time.sleep(0.1)
+            show_image = False
+            start_time = None
+
+        # Écran d'accueil
+        if not show_image:
+            screen.fill(WHITE)
+            text = font.render("Bienvenue", True, BLACK)
+            screen.blit(text, (250, 250))
+            pygame.display.flip()
+
+        # Afficher l'image pendant 5 secondes
+        if show_image:
+            screen.fill(WHITE)
+            # Remplacez par le chargement et l'affichage de votre image
+            text = small_font.render("Image affichée", True, BLACK)
+            screen.blit(text, (300, 250))
+            pygame.display.flip()
+
+        time.sleep(0.1)
+
+    pygame.quit()
+    GPIO.cleanup()
+
+if __name__ == "__main__":
+    main()
