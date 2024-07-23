@@ -197,6 +197,7 @@ def main():
     in_welcome_screen = False
     config_usb = True
     DECLENCHEUR = False
+    PRINT_IMAGE = False
     while running:
         etat_declencheur = GPIO.input(2)
         #etat_print = GPIO.input(3)
@@ -252,6 +253,17 @@ def main():
                 affichage(path=path)
                 time.sleep(5)
                 print("fin d'affichage")
+                if os.environ.get("PRINT"):
+                    PRINT_IMAGE = True
+                    print("print_picture")
+                    #affichage eccan print
+                    #compte 10 seconde
+                    if etat_declencheur == 0 and PRINT_IMAGE:
+                        PRINT_IMAGE = False
+                        #lancer l'impression
+                        #attendre 60 seconde
+                        #revenir à l'écran d'acceuil
+                        
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
