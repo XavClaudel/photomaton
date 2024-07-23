@@ -249,6 +249,8 @@ def main():
                         os.system(f"cp {home}/tmp/*jpg {path_usb_droit_a__l_image}")
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
+                affichage(path=path)
+                time.sleep(5)
                 print("fin d'affichage")
                 
                 # Afficher la photo
