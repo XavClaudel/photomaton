@@ -205,7 +205,8 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z or etat == 0:
+                if event.key == pygame.K_z or GPIO.event_detected(2):
+                    DECLENCHEUR = True
                     in_welcome_screen = not in_welcome_screen
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
                 for i in range(len(toggles)):
@@ -216,7 +217,7 @@ def main():
 
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
-            DECLENCHEUR = True
+            
             if  GPIO.event_detected(2) and DECLENCHEUR:
                 home = f"{os.environ.get('HOME')}/documents"
                 if os.environ.get("CLES_USB") and config_usb == 1:
