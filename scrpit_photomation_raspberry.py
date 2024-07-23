@@ -194,14 +194,12 @@ toggles = [os.getenv(var) == "TRUE" for var in env_vars]
 def main():
     init()
     running = True
-    running_print= False
     in_welcome_screen = False
-    config_usb = 1
+    config_usb = True
     DECLENCHEUR = False
-    PRINT_IMAGE = False
     while running:
         etat_declencheur = GPIO.input(2)
-        etat_print = GPIO.input(3)
+        #etat_print = GPIO.input(3)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -221,8 +219,9 @@ def main():
             draw_welcome_screen(screen=screen)
             
             if etat_declencheur == 0 and DECLENCHEUR:
+                DECLENCHEUR = False
                 home = f"{os.environ.get('HOME')}/documents"
-                if os.environ.get("CLES_USB") and config_usb == 1:
+                if os.environ.get("CLES_USB") and config_usb:
                     print("cles_usb")
                     device_node = monitor_usb(home)
                     path_usb_droit_a__l_image = creationdossier_usb(
@@ -232,7 +231,7 @@ def main():
                         device_node, field="photos/pas_droit_a_l_image"
                     )
 
-                config_usb += config_usb
+                    config_usb = False
 
                 timer()
                 os.system(
@@ -253,29 +252,6 @@ def main():
                 affichage(path=path)
                 time.sleep(5)
                 print("fin d'affichage")
-                GPIO.cleanup()
-                # Afficher la photo
-                if os.environ.get("PRINT"):
-                    running_print= True
-                    etat_declencheur == 0
-                    while running_print:
-                        print("OK")
-                        print(etat_print)
-                        print(etat_declencheur)
-                        draw_print_screen(screen=screen,path=path)
-                        if etat_print== 0 and PRINT_IMAGE:
-                            
-                            os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
-                            time.sleep(60)
-                            PRINT_IMAGE= False
-                            os.system(f" rm {home}/tmp/*jpg")
-                            running_print = False
-    
-
-                # if os.environ.get("DOWNLOAD"):
-                #     download(home, path)
-                #     # genration qrcode
-
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
