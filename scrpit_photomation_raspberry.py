@@ -9,9 +9,9 @@ import RPi.GPIO as GPIO
 import time
 
 # déclaration des ports GPIO que l'on utilise
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(2, GPIO.IN)
-GPIO.setup(3, GPIO.IN)
+# GPIO.setmode(GPIO.BCM)
+# GPIO.setup(2, GPIO.IN)
+# GPIO.setup(3, GPIO.IN)
 
 # Initialisation de Pygame
 pygame.init()
@@ -200,7 +200,7 @@ env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
 # États initiaux des boutons glissants
 toggles = [os.getenv(var) == "TRUE" for var in env_vars]
 GPIO.setup(2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
+GPIO.add_event_detect(2, GPIO.RISING)
 
 def main():
     init()
