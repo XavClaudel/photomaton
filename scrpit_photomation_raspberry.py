@@ -248,14 +248,17 @@ def main():
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
                 print("fin d'affichage")
-                os.system(f" rm {home}/tmp/*jpg")
+                
                 # Afficher la photo
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE= True
 
                     draw_print_screen(screen=screen,path=path)
+                    etat == 1
+                    print (etat)
                     if etat== 0 and PRINT_IMAGE:
-                        os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
+                        print("here")
+                        #os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
                         time.sleep(60)
                         PRINT_IMAGE= False
 
@@ -263,8 +266,8 @@ def main():
                 # if os.environ.get("DOWNLOAD"):
                 #     download(home, path)
                 #     # genration qrcode
-
-                    draw_welcome_screen(screen=screen)
+                os.system(f" rm {home}/tmp/*jpg")
+                draw_welcome_screen(screen=screen)
 
                 if event.key == pygame.K_q:
                     pygame.quit()
