@@ -257,6 +257,7 @@ def main():
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE= True
                     print("here")
+                    in_welcome_screen = not in_welcome_screen
                     draw_print_screen(screen=screen,path=path)
                     print(etat_declencheur)
                     print(etat_print)
@@ -267,7 +268,7 @@ def main():
                         PRINT_IMAGE= False
                         os.system(f" rm {home}/tmp/*jpg")
                         draw_welcome_screen(screen=screen)
-                
+                        in_welcome_screen = True
 
                 # if os.environ.get("DOWNLOAD"):
                 #     download(home, path)
