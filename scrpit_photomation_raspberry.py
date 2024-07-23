@@ -256,10 +256,12 @@ def main():
                 # Afficher la photo
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE= True
-
+                    print("here")
                     draw_print_screen(screen=screen,path=path)
-                    
+                    print(etat_declencheur)
+                    print(etat_print)
                     if etat_print== 0 and PRINT_IMAGE:
+                        print("OK")
                         os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
                         time.sleep(60)
                         PRINT_IMAGE= False
