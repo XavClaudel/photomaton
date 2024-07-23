@@ -214,7 +214,6 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_z :
                     in_welcome_screen = not in_welcome_screen
-                    DECLENCHEUR = True
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
                 for i in range(len(toggles)):
                     toggle_rect = pygame.Rect(450, 100 + i * 100, 60, 30)
@@ -257,10 +256,7 @@ def main():
 
         if show_image and time.time() - start_time >= 5:
             if print_image:
-                screen.fill(WHITE)
-                text = font_small.render("Impression", True, BLACK)
-                screen.blit(text, (250, 250))
-                pygame.display.flip()
+                draw_print_screen(path=path,screen=screen)
 
                 start_time = time.time()
                 while time.time() - start_time < 10:
@@ -276,10 +272,7 @@ def main():
 
         # Écran d'accueil
         if not show_image:
-            screen.fill(WHITE)
-            text = font_small.render("Bienvenue", True, BLACK)
-            screen.blit(text, (250, 250))
-            pygame.display.flip()
+            draw_welcome_screen(screen=screen)
 
         # Afficher l'image pendant 5 secondes
         if show_image:
