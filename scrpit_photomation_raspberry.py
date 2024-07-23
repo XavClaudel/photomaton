@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 import time
 
 # déclaration des ports GPIO que l'on utilise
-# GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BCM)
 # GPIO.setup(2, GPIO.IN)
 # GPIO.setup(3, GPIO.IN)
 
