@@ -90,11 +90,11 @@ def draw_welcome_screen(screen: pygame):
     pygame.display.flip()
 
 
-def timer():
-    fenetre = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
+def timer(screen :pygame):
+    
     for i in range(5, -1, -1):
         decompte = pygame.image.load(f"images/{i}.jpg").convert()
-        fenetre.blit(pygame.transform.scale(decompte, (width, height)), (0, 0))
+        screen.blit(pygame.transform.scale(decompte, (width, height)), (0, 0))
         pygame.display.flip()
         time.sleep(1)
 
@@ -185,7 +185,7 @@ def draw_print_choice_screen(path: str, screen: pygame):
     screen.fill(BLACK)
     for i, line in enumerate(lines):
         text_surface = font.render(line, True, WHITE)
-        screen.blit(text_surface, (200, 150 + i * 50))
+        screen.blit(text_surface, (180, 150 + i * 50))
 
     pygame.display.flip()
 
@@ -259,7 +259,7 @@ def main():
                     )
 
                     config_usb = False
-                timer()
+                timer(screen=screen)
                 os.system(
                     f"gphoto2 --capture-image-and-download --filename {os.environ.get('HOME')}/documents/tmp/capt_%y_%m_%d-%H_%M_%S.jpg"
                 )
