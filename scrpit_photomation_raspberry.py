@@ -96,13 +96,11 @@ def timer():
         time.sleep(1)
 
 
-def affichage(path: str):
+def affichage(path: str,screen : pygame):
     # affichage de l'image
-    fenetre = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
     affichage = pygame.image.load(path).convert()
-    fenetre.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
+    screen.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
     pygame.display.flip()
-    time.sleep(5)
 
 
 def mount_usb(device_node: str, mount_point: str):
@@ -185,14 +183,14 @@ def draw_print_choice_screen(path: str, screen: pygame):
         "Voulez-vous imprimez",
         "cette photo ?",
         "",
-        "Si oui, appuyer sur P",
+        "Si oui, appuyer sur le déclencheur.",
         "",
-        "Si non, appuyer sur N",
+        "Si non, attendez.",
     ]
     screen.fill(BLACK)
     for i, line in enumerate(lines):
         text_surface = font.render(line, True, WHITE)
-        screen.blit(text_surface, (100, 150 + i * 50))
+        screen.blit(text_surface, (300, 150 + i * 50))
 
     pygame.display.flip()
 
@@ -286,7 +284,7 @@ def main():
                         os.system(f"cp {home}/tmp/*jpg {path_usb_droit_a__l_image}")
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
-                affichage(path=path)
+                affichage(path=path,screen=screen)
                 time.sleep(8)
                 DECLENCHEUR = True
                 if os.environ.get("PRINT"):
