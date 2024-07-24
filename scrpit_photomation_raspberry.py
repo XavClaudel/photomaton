@@ -5,10 +5,8 @@ import sys
 import pyudev
 import subprocess
 import qrcode
-from concurrent.futures import ThreadPoolExecutor
 import RPi.GPIO as GPIO, time
 import cups
-from PIL import Image
 
 # déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
@@ -97,7 +95,7 @@ def timer():
 
 def affichage(path: str):
     # affichage de l'image
-    fenetre = pygame.display.set_mode((width, height),pygame.FULLSCREEN))
+    fenetre = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
     affichage = pygame.image.load(path).convert()
     fenetre.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
     pygame.display.flip()
@@ -236,7 +234,6 @@ def main():
     os.system(f" rm -r {home}/tmp")
     creationdossier("documents/tmp")
     while running:
-        etat_declencheur = GPIO.input(2)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
