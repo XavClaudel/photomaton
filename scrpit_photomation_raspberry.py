@@ -217,6 +217,8 @@ def main():
                         set_environment_variable(i, toggles[i])
 
         if in_welcome_screen:
+            counter = 0
+            print(counter)
             draw_welcome_screen(screen=screen)
             
             if etat_declencheur == 0 and DECLENCHEUR:
@@ -263,8 +265,8 @@ def main():
                         #lancer l'impression
                         #attendre 60 seconde
                         #revenir à l'écran d'acceuil
-                        
-                if event.key == pygame.K_q:
+            counter += counter            
+            if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
         else:
