@@ -142,7 +142,7 @@ def init():
     os.environ.get("CLES_USB", False)
     creationdossier("documents/photos/droit_a_l_image")
     creationdossier("documents/photos/pas_droit_a_l_image")
-    creationdossier("documents/tmp")    
+      
 
 def creationdossier(sous_chemin:str):
     home_dir = os.getenv("HOME")  # Récupérer la variable d'environnement HOME
@@ -227,6 +227,10 @@ def main():
     DECLENCHEUR = False
     PRINT_IMAGE = False
     while running:
+        home = f"{os.environ.get('HOME')}/documents"
+        os.system(f" rm -r {home}/tmp") 
+        creationdossier("documents/tmp")
+         
         etat_declencheur = GPIO.input(2)
         #etat_print = GPIO.input(3)
 
@@ -249,7 +253,7 @@ def main():
             
             if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
                 DECLENCHEUR = False
-                home = f"{os.environ.get('HOME')}/documents"
+                
                 if os.environ.get("CLES_USB") and config_usb:
                     print("cles_usb")
                     device_node = monitor_usb(home)
