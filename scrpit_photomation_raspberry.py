@@ -18,7 +18,10 @@ GPIO.setup(BUTTON_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 pygame.init()
 
 # Définition des dimensions de la fenêtre
-width, height = 800, 600
+i = pygame.display.Info()
+width = i.current_w
+height = i.current_h
+#width, height = 800, 600
 screen = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
 pygame.display.set_caption("Multi-écrans avec Pygame")
 
@@ -40,7 +43,7 @@ def draw_settings_screen(screen: pygame, toggles: list):
     params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
     for i, param in enumerate(params):
         text = font_small.render(param, 1, WHITE)
-        screen.blit(text, (100, 100 + i * 100))
+        screen.blit(text, (200, 100 + i * 100))
         draw_toggle_switch(
             screen=screen, position=(450, 100 + i * 100), state=toggles[i]
         )
