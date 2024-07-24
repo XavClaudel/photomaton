@@ -185,7 +185,7 @@ def draw_print_choice_screen(path: str, screen: pygame):
     screen.fill(BLACK)
     for i, line in enumerate(lines):
         text_surface = font.render(line, True, WHITE)
-        screen.blit(text_surface, (250, 150 + i * 50))
+        screen.blit(text_surface, (200, 150 + i * 50))
 
     pygame.display.flip()
 
