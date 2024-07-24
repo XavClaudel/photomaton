@@ -169,7 +169,7 @@ def creationdossier_usb(device_node:str, field:str) ->str:
 
     return home_dir
     
-def draw_print_screen(path :str,screen:pygame):
+def draw_print_choice_screen(path :str,screen:pygame):
     lines = [
     "Voulez-vous imprimez",
     "cette photo ?",
@@ -184,6 +184,12 @@ def draw_print_screen(path :str,screen:pygame):
         screen.blit(text_surface, (100, 150 + i * 50))
 
 
+    pygame.display.flip()
+
+def draw_print_screen(screen :pygame):
+    screen.fill(BLACK)
+    text = font_small.render("Impression", True, WHITE)
+    screen.blit(text, (250, 250))
     pygame.display.flip()
 
 # Variables d'environnement
@@ -258,16 +264,16 @@ def main():
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE = True
                     print("print_picture")
-                    draw_print_screen(path=path,screen=screen)
+                    draw_print_choice_screen(path=path,screen=screen)
                     start_time = time.time()
                     while time.time() - start_time < 10:
                         #compte 10 seconde
                         if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and PRINT_IMAGE:
                             PRINT_IMAGE = False
                             print(PRINT_IMAGE)
-                            #lancer l'impression
-                            #attendre 60 seconde
-                            #revenir à l'écran d'acceuil
+                            os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
+                            draw_print_screen(screen=screen)
+                            time.sleep(60)
                 os.system(f" rm {home}/tmp/*jpg")
                 draw_welcome_screen(screen=screen)           
         else:
