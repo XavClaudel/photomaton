@@ -73,16 +73,16 @@ def draw_welcome_screen(screen: pygame):
         text3 = font_small.render(
             "Sinon appuyer sur le bouton rouge", 1, (255, 255, 255)
         )
-        screen.blit(text, (250, 50))
-        screen.blit(text1, (250, 200))
-        screen.blit(text2, (250, 250))
-        screen.blit(text3, (250, 350))
+        screen.blit(text, (300, 100))
+        screen.blit(text1, (300, 250))
+        screen.blit(text2, (300, 300))
+        screen.blit(text3, (300, 400))
     else:
         text1 = font_small.render("Appuyer sur le déclencheur", 1, (255, 255, 255))
         text2 = font_small.render("pour prendre une photo", 1, (255, 255, 255))
-        screen.blit(text, (250, 50))
-        screen.blit(text1, (250, 200))
-        screen.blit(text2, (250, 250))
+        screen.blit(text, (300, 100))
+        screen.blit(text1, (300, 250))
+        screen.blit(text2, (300, 300))
 
     pygame.display.flip()
 
