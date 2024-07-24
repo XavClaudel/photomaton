@@ -268,9 +268,6 @@ def main():
                         #attendre 60 seconde
                         #revenir à l'écran d'acceuil
             counter += counter            
-            if event.key == pygame.K_q:
-                    pygame.quit()
-                    sys.exit()
         else:
             draw_settings_screen(screen=screen, toggles=toggles)
 
