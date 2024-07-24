@@ -257,6 +257,7 @@ def main():
                 print("fin d'affichage")
                 os.system(f" rm {home}/tmp/*jpg")
                 draw_welcome_screen(screen=screen)
+                DECLENCHEUR = True
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE = True
                     print("print_picture")
