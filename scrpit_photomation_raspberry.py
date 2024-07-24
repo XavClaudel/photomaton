@@ -193,7 +193,7 @@ def draw_print_choice_screen(path: str, screen: pygame):
 def draw_print_screen(screen: pygame):
     screen.fill(BLACK)
     text = font.render("Impression", True, WHITE)
-    screen.blit(text, (300, 250))
+    screen.blit(text, (350, 250))
     pygame.display.flip()
 
 
