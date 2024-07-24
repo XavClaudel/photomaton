@@ -254,20 +254,20 @@ def main():
                 affichage(path=path)
                 time.sleep(5)
                 print("fin d'affichage")
-                os.system(f" rm {home}/tmp/*jpg")
-                draw_welcome_screen(screen=screen)
                 DECLENCHEUR = True
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE = True
                     print("print_picture")
-                    #affichage eccan print
+                    draw_print_screen(path=path,screen=screen)
                     #compte 10 seconde
                     if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and PRINT_IMAGE:
                         PRINT_IMAGE = False
                         print(PRINT_IMAGE)
                         #lancer l'impression
                         #attendre 60 seconde
-                        #revenir à l'écran d'acceuil          
+                        #revenir à l'écran d'acceuil
+                os.system(f" rm {home}/tmp/*jpg")
+                draw_welcome_screen(screen=screen)           
         else:
             draw_settings_screen(screen=screen, toggles=toggles)
 
