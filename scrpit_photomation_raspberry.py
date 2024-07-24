@@ -218,8 +218,6 @@ def main():
                         set_environment_variable(i, toggles[i])
 
         if in_welcome_screen:
-            counter = 0
-            print(counter)
             draw_welcome_screen(screen=screen)
             
             if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
@@ -264,12 +262,12 @@ def main():
                     print("print_picture")
                     #affichage eccan print
                     #compte 10 seconde
-                    if etat_declencheur == 0 and PRINT_IMAGE:
+                    if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and PRINT_IMAGE:
                         PRINT_IMAGE = False
+                        print(PRINT_IMAGE)
                         #lancer l'impression
                         #attendre 60 seconde
-                        #revenir à l'écran d'acceuil
-            counter += counter            
+                        #revenir à l'écran d'acceuil          
         else:
             draw_settings_screen(screen=screen, toggles=toggles)
 
