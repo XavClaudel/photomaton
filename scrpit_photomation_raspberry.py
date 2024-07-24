@@ -11,7 +11,6 @@ import cups
 # déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
 BUTTON_PIN_2 = 2
-BUTTON_PIN_3 = 3
 GPIO.setup(BUTTON_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Initialisation de Pygame
@@ -21,9 +20,8 @@ pygame.init()
 i = pygame.display.Info()
 width = i.current_w
 height = i.current_h
-#width, height = 800, 600
 screen = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
-pygame.display.set_caption("Multi-écrans avec Pygame")
+pygame.display.set_caption("PHOTOMATON")
 
 # Définition des couleurs
 WHITE = (255, 255, 255)
@@ -34,187 +32,7 @@ RED = (255, 0, 0)
 # Polices
 font_large = pygame.font.Font(None, 120)
 font_small = pygame.font.Font(None, 50)
-# Police d'écriture
 font = pygame.font.Font(None, 74)
-
-
-def draw_settings_screen(screen: pygame, toggles: list):
-    screen.fill(BLACK)
-    params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
-    for i, param in enumerate(params):
-        text = font_small.render(param, 1, WHITE)
-        screen.blit(text, (100, 100 + i * 100))
-        draw_toggle_switch(
-            screen=screen, position=(450, 100 + i * 100), state=toggles[i]
-        )
-    pygame.display.flip()
-
-
-def draw_toggle_switch(screen: pygame, position: tuple, state: list):
-    pygame.draw.rect(screen, WHITE, (*position, 60, 30), border_radius=15)
-    if state:
-        pygame.draw.circle(screen, GREEN, (position[0] + 45, position[1] + 15), 15)
-    else:
-        pygame.draw.circle(screen, RED, (position[0] + 15, position[1] + 15), 15)
-
-
-def set_environment_variable(index: int, state: list):
-    os.environ[env_vars[index]] = "TRUE" if state else "FALSE"
-
-
-def draw_welcome_screen(screen: pygame):
-    screen.fill(BLACK)
-    text = font_large.render("Bienvenue", 1, WHITE)
-    if os.environ.get("DROIT_A_L_IMAGE"):
-        text1 = font_small.render("Appuyer sur le bouton vert", 1, (255, 255, 255))
-        text2 = font_small.render(
-            "pour céder votre droits à l'image", 1, (255, 255, 255)
-        )
-        text3 = font_small.render(
-            "Sinon appuyer sur le bouton rouge", 1, (255, 255, 255)
-        )
-        screen.blit(text, (300, 100))
-        screen.blit(text1, (300, 250))
-        screen.blit(text2, (300, 300))
-        screen.blit(text3, (300, 400))
-    else:
-        text1 = font_small.render("Appuyer sur le déclencheur", 1, (255, 255, 255))
-        text2 = font_small.render("pour prendre une photo", 1, (255, 255, 255))
-        screen.blit(text, (300, 100))
-        screen.blit(text1, (300, 300))
-        screen.blit(text2, (300, 350))
-
-    pygame.display.flip()
-
-
-def timer():
-    fenetre = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
-    for i in range(5, -1, -1):
-        decompte = pygame.image.load(f"images/{i}.jpg").convert()
-        fenetre.blit(pygame.transform.scale(decompte, (width, height)), (0, 0))
-        pygame.display.flip()
-        time.sleep(1)
-
-
-def affichage(path: str,screen : pygame):
-    # affichage de l'image
-    affichage = pygame.image.load(path).convert()
-    screen.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
-    pygame.display.flip()
-
-
-def mount_usb(device_node: str, mount_point: str):
-    """
-    Monte le périphérique USB.
-    :param device_node: Le noeud de périphérique (par exemple, /dev/sdb1).
-    :param mount_point: Le point de montage où monter le volume.
-    """
-    try:
-        os.makedirs(mount_point, exist_ok=True)
-        subprocess.run(["mount", device_node, mount_point], check=True)
-        print(f"Monté {device_node} sur {mount_point}")
-    except subprocess.CalledProcessError as e:
-        print(f"Erreur lors du montage de {device_node}: {e}")
-    except Exception as e:
-        print(f"Une erreur s'est produite: {e}")
-
-
-def monitor_usb(home: str) -> str:
-    """
-    Surveille les événements de connexion de périphériques USB et monte les nouveaux volumes.
-    """
-    context = pyudev.Context()
-    monitor = pyudev.Monitor.from_netlink(context)
-    monitor.filter_by(subsystem="block", device_type="partition")
-
-    print("Surveillance des périphériques USB en cours...")
-
-    for device in iter(monitor.poll, None):
-        if device.action == "add":
-            device_node = device.device_node
-            mount_point = f"home/xav/documents/cles_usb_photos"
-            if not os.path.exists(mount_point):  # Vérifier si le dossier n'existe pas
-                os.makedirs(mount_point)  # Créer le dossier
-            print(f"Nouvelle partition détectée : {device_node}")
-            print(f"mount :{mount_point}")
-            os.system(f"pmount {device_node} ")
-            return device_node
-
-
-def init():
-    os.environ.get("DROIT_A_L_IMAGE", False)
-    os.environ.get("PRINT", False)
-    os.environ.get("DOWNLOAD", False)
-    os.environ.get("CLES_USB", False)
-    creationdossier("documents/photos/droit_a_l_image")
-    creationdossier("documents/photos/pas_droit_a_l_image")
-
-
-def creationdossier(sous_chemin: str):
-    home_dir = os.getenv("HOME")  # Récupérer la variable d'environnement HOME
-    if home_dir is None:
-        raise EnvironmentError("La variable d'environnement HOME n'est pas définie.")
-
-    dir_path = os.path.join(home_dir, sous_chemin)  # Chemin complet du dossier
-
-    if not os.path.exists(dir_path):  # Vérifier si le dossier n'existe pas
-        os.makedirs(dir_path)  # Créer le dossier
-        print(f"Le dossier '{dir_path}' a été créé.")
-    else:
-        print(f"Le dossier '{dir_path}' existe déjà.")
-
-
-def creationdossier_usb(device_node: str, field: str) -> str:
-    home_dir = f"/media/{device_node.split('/')[2]}/{field}"  # Récupérer la variable d'environnement HOME
-    if home_dir is None:
-        raise EnvironmentError("La variable d'environnement HOME n'est pas définie.")
-
-    if not os.path.exists(home_dir):  # Vérifier si le dossier n'existe pas
-        os.makedirs(home_dir)  # Créer le dossier
-        print(f"Le dossier '{home_dir}' a été créé.")
-    else:
-        print(f"Le dossier '{home_dir}' existe déjà.")
-
-    return home_dir
-
-
-def draw_print_choice_screen(path: str, screen: pygame):
-    lines = [
-        "Voulez-vous imprimez",
-        "cette photo ?",
-        "",
-        "Si oui, appuyer sur le déclencheur.",
-        "",
-        "Si non, attendez.",
-    ]
-    screen.fill(BLACK)
-    for i, line in enumerate(lines):
-        text_surface = font.render(line, True, WHITE)
-        screen.blit(text_surface, (300, 150 + i * 50))
-
-    pygame.display.flip()
-
-
-def draw_print_screen(screen: pygame):
-    screen.fill(BLACK)
-    text = font_small.render("Impression", True, WHITE)
-    screen.blit(text, (250, 250))
-    pygame.display.flip()
-
-
-def print_picture(path):
-    conn = cups.Connection()
-
-    # Obtenir l'imprimante par défaut
-    printers = conn.getPrinters()
-    printer_name = list(printers.keys())[0]  # Utilise la première imprimante trouvée
-    print(f"printer name :{printer_name}")
-    # Vérifier si le fichier image existe
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Le fichier {path} n'existe pas.")
-
-    # Envoyer le fichier à l'imprimante
-    os.system(f"lp -d {printer_name} {path}")
 
 
 # Variables d'environnement
@@ -313,3 +131,174 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def draw_settings_screen(screen: pygame, toggles: list):
+    screen.fill(BLACK)
+    params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
+    for i, param in enumerate(params):
+        text = font_small.render(param, 1, WHITE)
+        screen.blit(text, (100, 100 + i * 100))
+        draw_toggle_switch(
+            screen=screen, position=(450, 100 + i * 100), state=toggles[i]
+        )
+    pygame.display.flip()
+
+
+def draw_toggle_switch(screen: pygame, position: tuple, state: list):
+    pygame.draw.rect(screen, WHITE, (*position, 60, 30), border_radius=15)
+    if state:
+        pygame.draw.circle(screen, GREEN, (position[0] + 45, position[1] + 15), 15)
+    else:
+        pygame.draw.circle(screen, RED, (position[0] + 15, position[1] + 15), 15)
+
+
+def set_environment_variable(index: int, state: list):
+    os.environ[env_vars[index]] = "TRUE" if state else "FALSE"
+
+
+def draw_welcome_screen(screen: pygame):
+    screen.fill(BLACK)
+    text = font_large.render("Bienvenue", 1, WHITE)
+    if os.environ.get("DROIT_A_L_IMAGE"):
+        text1 = font_small.render("Appuyer sur le bouton vert", 1, (255, 255, 255))
+        text2 = font_small.render(
+            "pour céder votre droits à l'image", 1, (255, 255, 255)
+        )
+        text3 = font_small.render(
+            "Sinon appuyer sur le bouton rouge", 1, (255, 255, 255)
+        )
+        screen.blit(text, (300, 100))
+        screen.blit(text1, (300, 250))
+        screen.blit(text2, (300, 300))
+        screen.blit(text3, (300, 400))
+    else:
+        text1 = font_small.render("Appuyer sur le déclencheur", 1, (255, 255, 255))
+        text2 = font_small.render("pour prendre une photo", 1, (255, 255, 255))
+        screen.blit(text, (300, 100))
+        screen.blit(text1, (300, 300))
+        screen.blit(text2, (300, 350))
+
+    pygame.display.flip()
+
+
+def timer():
+    fenetre = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
+    for i in range(5, -1, -1):
+        decompte = pygame.image.load(f"images/{i}.jpg").convert()
+        fenetre.blit(pygame.transform.scale(decompte, (width, height)), (0, 0))
+        pygame.display.flip()
+        time.sleep(1)
+
+
+def affichage(path: str,screen : pygame):
+    # affichage de l'image
+    affichage = pygame.image.load(path).convert()
+    screen.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
+    pygame.display.flip()
+
+
+def mount_usb(device_node: str, mount_point: str):
+    try:
+        os.makedirs(mount_point, exist_ok=True)
+        subprocess.run(["mount", device_node, mount_point], check=True)
+        print(f"Monté {device_node} sur {mount_point}")
+    except subprocess.CalledProcessError as e:
+        print(f"Erreur lors du montage de {device_node}: {e}")
+    except Exception as e:
+        print(f"Une erreur s'est produite: {e}")
+
+
+def monitor_usb(home: str) -> str:
+    context = pyudev.Context()
+    monitor = pyudev.Monitor.from_netlink(context)
+    monitor.filter_by(subsystem="block", device_type="partition")
+
+    print("Surveillance des périphériques USB en cours...")
+
+    for device in iter(monitor.poll, None):
+        if device.action == "add":
+            device_node = device.device_node
+            mount_point = f"{home}/documents/cles_usb_photos"
+            if not os.path.exists(mount_point):  # Vérifier si le dossier n'existe pas
+                os.makedirs(mount_point)  # Créer le dossier
+            print(f"Nouvelle partition détectée : {device_node}")
+            print(f"mount :{mount_point}")
+            os.system(f"pmount {device_node} ")
+            return device_node
+
+
+def init():
+    os.environ.get("DROIT_A_L_IMAGE", False)
+    os.environ.get("PRINT", False)
+    os.environ.get("DOWNLOAD", False)
+    os.environ.get("CLES_USB", False)
+    creationdossier("documents/photos/droit_a_l_image")
+    creationdossier("documents/photos/pas_droit_a_l_image")
+
+
+def creationdossier(sous_chemin: str):
+    home_dir = os.getenv("HOME")  # Récupérer la variable d'environnement HOME
+    if home_dir is None:
+        raise EnvironmentError("La variable d'environnement HOME n'est pas définie.")
+
+    dir_path = os.path.join(home_dir, sous_chemin)  # Chemin complet du dossier
+
+    if not os.path.exists(dir_path):  # Vérifier si le dossier n'existe pas
+        os.makedirs(dir_path)  # Créer le dossier
+        print(f"Le dossier '{dir_path}' a été créé.")
+    else:
+        print(f"Le dossier '{dir_path}' existe déjà.")
+
+
+def creationdossier_usb(device_node: str, field: str) -> str:
+    home_dir = f"/media/{device_node.split('/')[2]}/{field}"  # Récupérer la variable d'environnement HOME
+    if home_dir is None:
+        raise EnvironmentError("La variable d'environnement HOME n'est pas définie.")
+
+    if not os.path.exists(home_dir):  # Vérifier si le dossier n'existe pas
+        os.makedirs(home_dir)  # Créer le dossier
+        print(f"Le dossier '{home_dir}' a été créé.")
+    else:
+        print(f"Le dossier '{home_dir}' existe déjà.")
+
+    return home_dir
+
+
+def draw_print_choice_screen(path: str, screen: pygame):
+    lines = [
+        "Voulez-vous imprimez",
+        "cette photo ?",
+        "",
+        "Si oui, appuyer sur le déclencheur.",
+        "",
+        "Si non, attendez.",
+    ]
+    screen.fill(BLACK)
+    for i, line in enumerate(lines):
+        text_surface = font.render(line, True, WHITE)
+        screen.blit(text_surface, (250, 150 + i * 50))
+
+    pygame.display.flip()
+
+
+def draw_print_screen(screen: pygame):
+    screen.fill(BLACK)
+    text = font.render("Impression", True, WHITE)
+    screen.blit(text, (300, 250))
+    pygame.display.flip()
+
+
+def print_picture(path):
+    conn = cups.Connection()
+
+    # Obtenir l'imprimante par défaut
+    printers = conn.getPrinters()
+    printer_name = list(printers.keys())[0]  # Utilise la première imprimante trouvée
+    print(f"printer name :{printer_name}")
+    # Vérifier si le fichier image existe
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Le fichier {path} n'existe pas.")
+
+    # Envoyer le fichier à l'imprimante
+    os.system(f"lp -d {printer_name} {path}")
