@@ -10,8 +10,9 @@ import RPi.GPIO as GPIO, time
 
 # déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(2, GPIO.IN)
-GPIO.setup(3, GPIO.IN)
+BUTTON_PIN_2 = 2
+BUTTON_PIN_3 = 3
+GPIO.setup(BUTTON_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Initialisation de Pygame
 pygame.init()
@@ -221,7 +222,7 @@ def main():
             print(counter)
             draw_welcome_screen(screen=screen)
             
-            if etat_declencheur == 0 and DECLENCHEUR:
+            if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
                 DECLENCHEUR = False
                 home = f"{os.environ.get('HOME')}/documents"
                 if os.environ.get("CLES_USB") and config_usb:
