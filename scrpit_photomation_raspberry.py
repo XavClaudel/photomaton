@@ -21,7 +21,7 @@ pygame.init()
 
 # Définition des dimensions de la fenêtre
 width, height = 800, 600
-screen = pygame.display.set_mode((width, height))
+screen = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
 pygame.display.set_caption("Multi-écrans avec Pygame")
 
 # Définition des couleurs
@@ -30,33 +30,38 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
-#Polices
+# Polices
 font_large = pygame.font.Font(None, 120)
 font_small = pygame.font.Font(None, 50)
 # Police d'écriture
 font = pygame.font.Font(None, 74)
 
 
-def draw_settings_screen(screen:pygame, toggles:list):
+def draw_settings_screen(screen: pygame, toggles: list):
     screen.fill(BLACK)
     params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
     for i, param in enumerate(params):
         text = font_small.render(param, 1, WHITE)
         screen.blit(text, (100, 100 + i * 100))
-        draw_toggle_switch(screen=screen, position=(450, 100 + i * 100), state=toggles[i])
+        draw_toggle_switch(
+            screen=screen, position=(450, 100 + i * 100), state=toggles[i]
+        )
     pygame.display.flip()
 
-def draw_toggle_switch(screen:pygame, position:tuple, state:list):
+
+def draw_toggle_switch(screen: pygame, position: tuple, state: list):
     pygame.draw.rect(screen, WHITE, (*position, 60, 30), border_radius=15)
     if state:
         pygame.draw.circle(screen, GREEN, (position[0] + 45, position[1] + 15), 15)
     else:
         pygame.draw.circle(screen, RED, (position[0] + 15, position[1] + 15), 15)
 
-def set_environment_variable(index:int, state:list):
+
+def set_environment_variable(index: int, state: list):
     os.environ[env_vars[index]] = "TRUE" if state else "FALSE"
 
-def draw_welcome_screen(screen:pygame):
+
+def draw_welcome_screen(screen: pygame):
     screen.fill(BLACK)
     text = font_large.render("Bienvenue", 1, WHITE)
     if os.environ.get("DROIT_A_L_IMAGE"):
@@ -79,8 +84,10 @@ def draw_welcome_screen(screen:pygame):
         screen.blit(text2, (100, 200))
 
     pygame.display.flip()
+
+
 def timer():
-    fenetre = pygame.display.set_mode((width, height))
+    fenetre = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
     for i in range(5, -1, -1):
         decompte = pygame.image.load(f"images/{i}.jpg").convert()
         fenetre.blit(pygame.transform.scale(decompte, (width, height)), (0, 0))
@@ -88,17 +95,16 @@ def timer():
         time.sleep(1)
 
 
-def affichage(path:str):
+def affichage(path: str):
     # affichage de l'image
-    fenetre = pygame.display.set_mode((width, height))
+    fenetre = pygame.display.set_mode((width, height),pygame.FULLSCREEN))
     affichage = pygame.image.load(path).convert()
     fenetre.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
     pygame.display.flip()
     time.sleep(5)
 
 
-
-def mount_usb(device_node : str, mount_point : str):
+def mount_usb(device_node: str, mount_point: str):
     """
     Monte le périphérique USB.
     :param device_node: Le noeud de périphérique (par exemple, /dev/sdb1).
@@ -114,7 +120,7 @@ def mount_usb(device_node : str, mount_point : str):
         print(f"Une erreur s'est produite: {e}")
 
 
-def monitor_usb(home:str) -> str:
+def monitor_usb(home: str) -> str:
     """
     Surveille les événements de connexion de périphériques USB et monte les nouveaux volumes.
     """
@@ -135,6 +141,7 @@ def monitor_usb(home:str) -> str:
             os.system(f"pmount {device_node} ")
             return device_node
 
+
 def init():
     os.environ.get("DROIT_A_L_IMAGE", False)
     os.environ.get("PRINT", False)
@@ -142,9 +149,9 @@ def init():
     os.environ.get("CLES_USB", False)
     creationdossier("documents/photos/droit_a_l_image")
     creationdossier("documents/photos/pas_droit_a_l_image")
-      
 
-def creationdossier(sous_chemin:str):
+
+def creationdossier(sous_chemin: str):
     home_dir = os.getenv("HOME")  # Récupérer la variable d'environnement HOME
     if home_dir is None:
         raise EnvironmentError("La variable d'environnement HOME n'est pas définie.")
@@ -158,7 +165,7 @@ def creationdossier(sous_chemin:str):
         print(f"Le dossier '{dir_path}' existe déjà.")
 
 
-def creationdossier_usb(device_node:str, field:str) ->str:
+def creationdossier_usb(device_node: str, field: str) -> str:
     home_dir = f"/media/{device_node.split('/')[2]}/{field}"  # Récupérer la variable d'environnement HOME
     if home_dir is None:
         raise EnvironmentError("La variable d'environnement HOME n'est pas définie.")
@@ -170,36 +177,33 @@ def creationdossier_usb(device_node:str, field:str) ->str:
         print(f"Le dossier '{home_dir}' existe déjà.")
 
     return home_dir
-    
-def draw_print_choice_screen(path :str,screen:pygame):
+
+
+def draw_print_choice_screen(path: str, screen: pygame):
     lines = [
-    "Voulez-vous imprimez",
-    "cette photo ?",
-    "",
-    "Si oui, appuyer sur P",
-    "",
-    "Si non, appuyer sur N"
-]
+        "Voulez-vous imprimez",
+        "cette photo ?",
+        "",
+        "Si oui, appuyer sur P",
+        "",
+        "Si non, appuyer sur N",
+    ]
     screen.fill(BLACK)
     for i, line in enumerate(lines):
         text_surface = font.render(line, True, WHITE)
         screen.blit(text_surface, (100, 150 + i * 50))
 
-
     pygame.display.flip()
 
-def draw_print_screen(screen :pygame):
+
+def draw_print_screen(screen: pygame):
     screen.fill(BLACK)
     text = font_small.render("Impression", True, WHITE)
     screen.blit(text, (250, 250))
     pygame.display.flip()
 
-def print_picture(path):
 
-    # im1 = Image.open(path)
-    # path = path.split('.')[0]+'.png'
-    # im1.save(path)
-    # Créer une connexion à CUPS
+def print_picture(path):
     conn = cups.Connection()
 
     # Obtenir l'imprimante par défaut
@@ -211,14 +215,15 @@ def print_picture(path):
         raise FileNotFoundError(f"Le fichier {path} n'existe pas.")
 
     # Envoyer le fichier à l'imprimante
-    #x=conn.printFile(printer_name, path, "Job Title", {})
-    x=os.system(f'lp -d {printer_name} {path}')
-    print(x)
+    os.system(f"lp -d {printer_name} {path}")
+
+
 # Variables d'environnement
 env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
 
 # États initiaux des boutons glissants
 toggles = [os.getenv(var) == "TRUE" for var in env_vars]
+
 
 def main():
     init()
@@ -228,22 +233,20 @@ def main():
     DECLENCHEUR = False
     PRINT_IMAGE = False
     home = f"{os.environ.get('HOME')}/documents"
-    os.system(f" rm -r {home}/tmp") 
+    os.system(f" rm -r {home}/tmp")
     creationdossier("documents/tmp")
     while running:
-        
-        
-         
         etat_declencheur = GPIO.input(2)
-        #etat_print = GPIO.input(3)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z or etat_declencheur == 0:
+                if event.key == pygame.K_z :
                     in_welcome_screen = not in_welcome_screen
                     DECLENCHEUR = True
+                if event.key == pygame.K_q :
+                    running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
                 for i in range(len(toggles)):
                     toggle_rect = pygame.Rect(450, 100 + i * 100, 60, 30)
@@ -253,12 +256,11 @@ def main():
 
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
-            
+
             if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
                 DECLENCHEUR = False
-                
+
                 if os.environ.get("CLES_USB") and config_usb:
-                    print("cles_usb")
                     device_node = monitor_usb(home)
                     path_usb_droit_a__l_image = creationdossier_usb(
                         device_node, field="photos/droit_a_l_image"
@@ -268,7 +270,6 @@ def main():
                     )
 
                     config_usb = False
-
                 timer()
                 os.system(
                     f"gphoto2 --capture-image-and-download --filename {os.environ.get('HOME')}/documents/tmp/capt_%y_%m_%d-%H_%M_%S.jpg"
@@ -286,25 +287,25 @@ def main():
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
                 affichage(path=path)
-                time.sleep(10)
-                print("fin d'affichage")
+                time.sleep(8)
                 DECLENCHEUR = True
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE = True
-                    print("print_picture")
-                    draw_print_choice_screen(path=path,screen=screen)
+                    draw_print_choice_screen(path=path, screen=screen)
                     start_time = time.time()
                     while time.time() - start_time < 10:
-                        #compte 10 seconde
                         if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and PRINT_IMAGE:
                             PRINT_IMAGE = False
                             print(PRINT_IMAGE)
-                            
                             draw_print_screen(screen=screen)
                             print_picture(path=path)
                             time.sleep(60)
+
+                if os.environ.get("DOWNLOAD"):
+                    print("DOWNLOAD")
+
                 os.system(f" rm {home}/tmp/*jpg")
-                draw_welcome_screen(screen=screen)           
+                draw_welcome_screen(screen=screen)
         else:
             draw_settings_screen(screen=screen, toggles=toggles)
 
