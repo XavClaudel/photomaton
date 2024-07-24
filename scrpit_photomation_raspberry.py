@@ -198,7 +198,8 @@ def print_picture(path):
 
     print()
     im1 = Image.open(path)
-    im1.save(path.split('.')[0]+'.png')
+    path = path.split('.')[0]+'.png'
+    im1.save(path)
     # Créer une connexion à CUPS
     conn = cups.Connection()
 
@@ -211,7 +212,7 @@ def print_picture(path):
         raise FileNotFoundError(f"Le fichier {path} n'existe pas.")
 
     # Envoyer le fichier à l'imprimante
-    conn.printFile(printer_name, im1, "Job Title", {})
+    conn.printFile(printer_name, path, "Job Title", {})
 # Variables d'environnement
 env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
 
