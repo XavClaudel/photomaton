@@ -252,20 +252,22 @@ def main():
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
                 affichage(path=path)
-                time.sleep(5)
+                time.sleep(10)
                 print("fin d'affichage")
                 DECLENCHEUR = True
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE = True
                     print("print_picture")
                     draw_print_screen(path=path,screen=screen)
-                    #compte 10 seconde
-                    if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and PRINT_IMAGE:
-                        PRINT_IMAGE = False
-                        print(PRINT_IMAGE)
-                        #lancer l'impression
-                        #attendre 60 seconde
-                        #revenir à l'écran d'acceuil
+                    start_time = time.time()
+                    while time.time() - start_time < 10:
+                        #compte 10 seconde
+                        if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and PRINT_IMAGE:
+                            PRINT_IMAGE = False
+                            print(PRINT_IMAGE)
+                            #lancer l'impression
+                            #attendre 60 seconde
+                            #revenir à l'écran d'acceuil
                 os.system(f" rm {home}/tmp/*jpg")
                 draw_welcome_screen(screen=screen)           
         else:
