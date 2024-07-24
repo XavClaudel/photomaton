@@ -255,6 +255,8 @@ def main():
                 affichage(path=path)
                 time.sleep(5)
                 print("fin d'affichage")
+                os.system(f" rm {home}/tmp/*jpg")
+                draw_welcome_screen(screen=screen)
                 if os.environ.get("PRINT"):
                     PRINT_IMAGE = True
                     print("print_picture")
