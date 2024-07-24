@@ -7,6 +7,7 @@ import subprocess
 import qrcode
 from concurrent.futures import ThreadPoolExecutor
 import RPi.GPIO as GPIO, time
+import cups
 
 # déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
@@ -192,6 +193,20 @@ def draw_print_screen(screen :pygame):
     screen.blit(text, (250, 250))
     pygame.display.flip()
 
+def print_picture(path):
+    # Créer une connexion à CUPS
+    conn = cups.Connection()
+
+    # Obtenir l'imprimante par défaut
+    printers = conn.getPrinters()
+    printer_name = list(printers.keys())[0]  # Utilise la première imprimante trouvée
+
+    # Vérifier si le fichier image existe
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Le fichier {path} n'existe pas.")
+
+    # Envoyer le fichier à l'imprimante
+    conn.printFile(printer_name, path, "Job Title", {})
 # Variables d'environnement
 env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
 
@@ -271,7 +286,7 @@ def main():
                         if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and PRINT_IMAGE:
                             PRINT_IMAGE = False
                             print(PRINT_IMAGE)
-                            os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
+                            print_picture(path=path)
                             draw_print_screen(screen=screen)
                             time.sleep(60)
                 os.system(f" rm {home}/tmp/*jpg")
