@@ -205,14 +205,14 @@ def print_picture(path):
     # Obtenir l'imprimante par défaut
     printers = conn.getPrinters()
     printer_name = list(printers.keys())[0]  # Utilise la première imprimante trouvée
-
+    print(f"printer name :{printer_name}")
     # Vérifier si le fichier image existe
     if not os.path.exists(path):
         raise FileNotFoundError(f"Le fichier {path} n'existe pas.")
 
     # Envoyer le fichier à l'imprimante
-    x=conn.printFile(printer_name, path, "Job Title", {})
-    #x=os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
+    #x=conn.printFile(printer_name, path, "Job Title", {})
+    x=os.system(f'lp -d {printer_name} {path}')
     print(x)
 # Variables d'environnement
 env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
@@ -227,10 +227,11 @@ def main():
     config_usb = True
     DECLENCHEUR = False
     PRINT_IMAGE = False
+    home = f"{os.environ.get('HOME')}/documents"
     os.system(f" rm -r {home}/tmp") 
     creationdossier("documents/tmp")
     while running:
-        home = f"{os.environ.get('HOME')}/documents"
+        
         
          
         etat_declencheur = GPIO.input(2)
