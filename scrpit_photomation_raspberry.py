@@ -81,8 +81,8 @@ def draw_welcome_screen(screen: pygame):
         text1 = font_small.render("Appuyer sur le déclencheur", 1, (255, 255, 255))
         text2 = font_small.render("pour prendre une photo", 1, (255, 255, 255))
         screen.blit(text, (300, 100))
-        screen.blit(text1, (300, 250))
-        screen.blit(text2, (300, 300))
+        screen.blit(text1, (300, 350))
+        screen.blit(text2, (300, 400))
 
     pygame.display.flip()
 
