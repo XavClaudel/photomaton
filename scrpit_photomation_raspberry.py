@@ -8,7 +8,7 @@ import qrcode
 from concurrent.futures import ThreadPoolExecutor
 import RPi.GPIO as GPIO, time
 import cups
-    from PIL import Image
+from PIL import Image
 
 # déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
