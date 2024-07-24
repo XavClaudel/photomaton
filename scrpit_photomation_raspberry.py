@@ -8,6 +8,7 @@ import qrcode
 from concurrent.futures import ThreadPoolExecutor
 import RPi.GPIO as GPIO, time
 import cups
+    from PIL import Image
 
 # déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
@@ -194,6 +195,10 @@ def draw_print_screen(screen :pygame):
     pygame.display.flip()
 
 def print_picture(path):
+
+    print(path.split('.'))
+    im1 = Image.open(path)
+    #im1.save()
     # Créer une connexion à CUPS
     conn = cups.Connection()
 
@@ -286,8 +291,9 @@ def main():
                         if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and PRINT_IMAGE:
                             PRINT_IMAGE = False
                             print(PRINT_IMAGE)
-                            print_picture(path=path)
+                            
                             draw_print_screen(screen=screen)
+                            print_picture(path=path)
                             time.sleep(60)
                 os.system(f" rm {home}/tmp/*jpg")
                 draw_welcome_screen(screen=screen)           
