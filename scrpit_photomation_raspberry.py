@@ -43,7 +43,7 @@ def draw_settings_screen(screen: pygame, toggles: list):
     params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
     for i, param in enumerate(params):
         text = font_small.render(param, 1, WHITE)
-        screen.blit(text, (200, 200 + i * 100))
+        screen.blit(text, (100, 100 + i * 100))
         draw_toggle_switch(
             screen=screen, position=(450, 100 + i * 100), state=toggles[i]
         )
@@ -73,16 +73,16 @@ def draw_welcome_screen(screen: pygame):
         text3 = font_small.render(
             "Sinon appuyer sur le bouton rouge", 1, (255, 255, 255)
         )
-        screen.blit(text, (100, 0))
-        screen.blit(text1, (100, 150))
-        screen.blit(text2, (100, 200))
-        screen.blit(text3, (100, 300))
+        screen.blit(text, (200, 0))
+        screen.blit(text1, (200, 150))
+        screen.blit(text2, (200, 200))
+        screen.blit(text3, (200, 300))
     else:
         text1 = font_small.render("Appuyer sur le déclencheur", 1, (255, 255, 255))
         text2 = font_small.render("pour prendre une photo", 1, (255, 255, 255))
-        screen.blit(text, (100, 0))
-        screen.blit(text1, (100, 150))
-        screen.blit(text2, (100, 200))
+        screen.blit(text, (200, 0))
+        screen.blit(text1, (200, 150))
+        screen.blit(text2, (200, 200))
 
     pygame.display.flip()
 
