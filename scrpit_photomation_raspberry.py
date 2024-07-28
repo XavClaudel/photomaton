@@ -44,7 +44,7 @@ toggles = [os.getenv(var) == "TRUE" for var in env_vars]
 
 def draw_settings_screen(screen: pygame, toggles: list):
     screen.fill(BLACK)
-    params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
+    params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB","RETOUR_IMAGE"]
     for i, param in enumerate(params):
         text = font_small.render(param, 1, WHITE)
         screen.blit(text, (100, 100 + i * 100))
