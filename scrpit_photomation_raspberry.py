@@ -350,7 +350,7 @@ def main():
                     screen2 = pygame.display.set_mode((width, height))
                     affichage(path=qrcode,screen=screen2)
                     time.sleep(20)
-                    os.system(f"rm {qrcode}")
+                    #os.system(f"rm {qrcode}")
 
 
                     
