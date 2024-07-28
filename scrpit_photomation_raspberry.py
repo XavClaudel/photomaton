@@ -250,7 +250,7 @@ def afficher_retour_video(screen: pygame):
 
 def generate_qr_code(image_path, output_file="qrcode.png"):
     # Construire l'URL pour le serveur local
-    local_url = f"http://localhost:8000/{image_path}"
+    local_url = f"http://192.168.0.25:8000/{image_path}"
 
     # Générer le QR code
     qr = qrcode.QRCode(
@@ -348,7 +348,8 @@ def main():
                     os.system(f"cd {path} && python -m http.server 8000")
                     qrcode=generate_qr_code(image_path=path)
                     affichage(path=qrcode,screen=screen)
-                    time.sleep(10)
+                    time.sleep(20)
+                    os.system(f"rm {qrcode}")
 
 
                     
