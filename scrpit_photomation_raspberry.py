@@ -247,8 +247,9 @@ def afficher_retour_video(screen:pygame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         # Convertir l'image à un format que Pygame peut afficher
+        print(f"frame:{frame}")
         frame = pygame.surfarray.make_surface(frame)
-
+        print(f"frame2:{frame}")
         # Afficher l'image
         screen.blit(frame, (0, 0))
         pygame.display.update()
