@@ -67,28 +67,32 @@ def set_environment_variable(index: int, state: list):
 
 
 def draw_welcome_screen(screen: pygame):
-    screen.fill(BLACK)
-    text = font_large.render("Bienvenue", 1, WHITE)
-    if os.environ.get("DROIT_A_L_IMAGE"):
-        text1 = font_small.render("Appuyer sur le bouton vert", 1, (255, 255, 255))
-        text2 = font_small.render(
-            "pour céder votre droits à l'image", 1, (255, 255, 255)
-        )
-        text3 = font_small.render(
-            "Sinon appuyer sur le bouton rouge", 1, (255, 255, 255)
-        )
-        screen.blit(text, (300, 100))
-        screen.blit(text1, (300, 250))
-        screen.blit(text2, (300, 300))
-        screen.blit(text3, (300, 400))
+    if os.environ.get("RETOUR_IMAGE"):
+                print(f'{os.environ.get("RETOUR_IMAGE")}')
+                afficher_retour_video(screen=screen)
     else:
-        text1 = font_small.render("Appuyer sur le déclencheur", 1, (255, 255, 255))
-        text2 = font_small.render("pour prendre une photo", 1, (255, 255, 255))
-        screen.blit(text, (300, 100))
-        screen.blit(text1, (300, 300))
-        screen.blit(text2, (300, 350))
+        screen.fill(BLACK)
+        text = font_large.render("Bienvenue", 1, WHITE)
+        if os.environ.get("DROIT_A_L_IMAGE"):
+            text1 = font_small.render("Appuyer sur le bouton vert", 1, (255, 255, 255))
+            text2 = font_small.render(
+                "pour céder votre droits à l'image", 1, (255, 255, 255)
+            )
+            text3 = font_small.render(
+                "Sinon appuyer sur le bouton rouge", 1, (255, 255, 255)
+            )
+            screen.blit(text, (300, 100))
+            screen.blit(text1, (300, 250))
+            screen.blit(text2, (300, 300))
+            screen.blit(text3, (300, 400))
+        else:
+            text1 = font_small.render("Appuyer sur le déclencheur", 1, (255, 255, 255))
+            text2 = font_small.render("pour prendre une photo", 1, (255, 255, 255))
+            screen.blit(text, (300, 100))
+            screen.blit(text1, (300, 300))
+            screen.blit(text2, (300, 350))
 
-    pygame.display.flip()
+        pygame.display.flip()
 
 
 def timer(screen :pygame):
@@ -283,11 +287,9 @@ def main():
 
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
-            if os.environ.get("RETOUR_IMAGE"):
-                print(f'{os.environ.get("RETOUR_IMAGE")}')
-                afficher_retour_video(screen=screen)
-
-            elif GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
+            
+                
+            if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
                 DECLENCHEUR = False
 
                 if os.environ.get("CLES_USB") and config_usb:
