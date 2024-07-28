@@ -246,9 +246,8 @@ def afficher_retour_video(screen:pygame):
     # Afficher l'image
     screen.blit(frame, (0, 0))
     pygame.display.update()
-
-
-    #capture.release()
+    if GPIO.input(BUTTON_PIN_2) == GPIO.LOW
+        capture.release()
 
 
 def main():
