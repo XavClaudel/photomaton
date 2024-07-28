@@ -105,7 +105,7 @@ def timer(screen: pygame):
 def affichage(path: str, screen: pygame):
     # affichage de l'image
     affichage = pygame.image.load(path).convert()
-    screen.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
+    screen.blit(pygame.transform.scale(affichage, (128, 128)), (0, 0))
     pygame.display.flip()
 
 
@@ -347,8 +347,7 @@ def main():
                     print("DOWNLOAD")
                     os.system(f"cd {path} && python -m http.server 8000")
                     qrcode=generate_qr_code(image_path=path)
-                    screen2 = pygame.display.set_mode((width, height))
-                    affichage(path=qrcode,screen=screen2)
+                    affichage(path=qrcode,screen=screen)
                     time.sleep(20)
                     #os.system(f"rm {qrcode}")
 
