@@ -102,10 +102,10 @@ def timer(screen: pygame):
         time.sleep(1)
 
 
-def affichage(path: str, screen: pygame):
+def affichage(path: str, screen: pygame,width:int,height:int):
     # affichage de l'image
     affichage = pygame.image.load(path).convert()
-    screen.blit(pygame.transform.scale(affichage, (128, 128)), (0, 0))
+    screen.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
     pygame.display.flip()
 
 
@@ -328,7 +328,7 @@ def main():
                         os.system(f"cp {home}/tmp/*jpg {path_usb_droit_a__l_image}")
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
-                affichage(path=path, screen=screen)
+                affichage(path=path, screen=screen,width=width,height=height)
                 time.sleep(8)
                 DECLENCHEUR = True
                 if os.environ.get("PRINT"):
@@ -347,7 +347,7 @@ def main():
                     print("DOWNLOAD")
                     os.system(f"cd {path} && python -m http.server 8000")
                     qrcode=generate_qr_code(image_path=path)
-                    affichage(path=qrcode,screen=screen)
+                    affichage(path=qrcode,screen=screen,width=512,height=512)
                     time.sleep(20)
                     #os.system(f"rm {qrcode}")
 
