@@ -44,7 +44,6 @@ env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB", "RETOUR_IMAGE"]
 # États initiaux des boutons glissants
 toggles = [os.getenv(var) == "TRUE" for var in env_vars]
 
-app = Flask(__name__)
 
 def draw_settings_screen(screen: pygame, toggles: list):
     screen.fill(BLACK)
@@ -249,40 +248,26 @@ def afficher_retour_video(screen: pygame):
     if GPIO.input(BUTTON_PIN_2) == GPIO.LOW:
         capture.release()
 
-@app.route('/')
-def index():
-    # URL de l'image (chemin relatif à partir de la racine du serveur)
-    image_url = f"http://127.0.0.1:5000/image"
-                        
-    # Générer le QR code pour l'URL de l'image
-    qr = qrcode.QRCode(
-                            version=1,
-                            error_correction=qrcode.constants.ERROR_CORRECT_L,
-                            box_size=10,
-                            border=4,
-                        )
-    qr.add_data(image_url)
-    qr.make(fit=True)
-    img = qr.make_image(fill='black', back_color='white')
-                        
-    # Sauvegarder le QR code en tant qu'image temporaire
-    qr_code_path = "static/qrcode.png"
-    img.save(qr_code_path)
-    print("HERE")
-    # Page HTML qui affiche le QR code
-    html_content = f'''
-                        <html>
-                        <body>
-                            <h1>Scannez le QR code pour accéder à l'image</h1>
-                            <img src="/{qr_code_path}" alt="QR code">
-                        </body>
-                        </html>
-                        '''
-    return render_template_string(html_content),qr_code_path
+def generate_qr_code(image_path, output_file="qrcode.png"):
+    # Construire l'URL pour le serveur local
+    local_url = f"http://localhost:8000/{image_path}"
 
-@app.route('/image')
-def get_image(path:str):
-    return send_file(path, mimetype='image/jpeg')
+    # Générer le QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(local_url)
+    qr.make(fit=True)
+
+    # Créer l'image du QR code
+    img = qr.make_image(fill='black', back_color='white')
+    img.save(output_file)
+
+    print(f"QR code généré et enregistré sous {output_file}")
+    return output_file
 
 def main():
     init()
@@ -360,13 +345,12 @@ def main():
 
                 if os.environ.get("DOWNLOAD"):
                     print("DOWNLOAD")
-                    if not os.path.exists('static'):
-                        os.makedirs('static')
-                    
-                    app.run(debug=True)
-                    render_template_string,qr_code_path=index()
-                    affichage(path=qr_code_path,screen=screen)
-                    time.sleep(20)   
+                    os.system(f"cd {path} && python -m http.server 8000")
+                    qrcode=generate_qr_code(image_path=path)
+                    affichage(path=qrcode,screen=screen)
+                    time.sleep(10)
+
+
                     
 
                 os.system(f" rm {home}/tmp/*jpg")
