@@ -21,7 +21,7 @@ pygame.init()
 i = pygame.display.Info()
 width = i.current_w
 height = i.current_h
-screen = pygame.display.set_mode((width, height),pygame.FULLSCREEN)
+screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
 pygame.display.set_caption("PHOTOMATON")
 
 # Définition des couleurs
@@ -37,14 +37,15 @@ font = pygame.font.Font(None, 74)
 
 
 # Variables d'environnement
-env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB","RETOUR_IMAGE"]
+env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB", "RETOUR_IMAGE"]
 
 # États initiaux des boutons glissants
 toggles = [os.getenv(var) == "TRUE" for var in env_vars]
 
+
 def draw_settings_screen(screen: pygame, toggles: list):
     screen.fill(BLACK)
-    params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB","RETOUR_IMAGE"]
+    params = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB", "RETOUR_IMAGE"]
     for i, param in enumerate(params):
         text = font_small.render(param, 1, WHITE)
         screen.blit(text, (100, 100 + i * 100))
@@ -68,26 +69,22 @@ def set_environment_variable(index: int, state: list):
 
 def draw_welcome_screen(screen: pygame):
     if os.environ.get("RETOUR_IMAGE"):
-                print(f'{os.environ.get("RETOUR_IMAGE")}')
-                afficher_retour_video(screen=screen)
+        print(f'{os.environ.get("RETOUR_IMAGE")}')
+        afficher_retour_video(screen=screen)
     else:
         screen.fill(BLACK)
         text = font_large.render("Bienvenue", 1, WHITE)
         if os.environ.get("DROIT_A_L_IMAGE"):
-            text1 = font_small.render("Appuyer sur le bouton vert", 1, (255, 255, 255))
-            text2 = font_small.render(
-                "pour céder votre droits à l'image", 1, (255, 255, 255)
-            )
-            text3 = font_small.render(
-                "Sinon appuyer sur le bouton rouge", 1, (255, 255, 255)
-            )
+            text1 = font_small.render("Appuyer sur le bouton vert", 1, WHITE)
+            text2 = font_small.render("pour céder votre droits à l'image", 1, WHITE)
+            text3 = font_small.render("Sinon appuyer sur le bouton rouge", 1, WHITE)
             screen.blit(text, (300, 100))
             screen.blit(text1, (300, 250))
             screen.blit(text2, (300, 300))
             screen.blit(text3, (300, 400))
         else:
-            text1 = font_small.render("Appuyer sur le déclencheur", 1, (255, 255, 255))
-            text2 = font_small.render("pour prendre une photo", 1, (255, 255, 255))
+            text1 = font_small.render("Appuyer sur le déclencheur", 1, WHITE)
+            text2 = font_small.render("pour prendre une photo", 1, WHITE)
             screen.blit(text, (300, 100))
             screen.blit(text1, (300, 300))
             screen.blit(text2, (300, 350))
@@ -95,8 +92,7 @@ def draw_welcome_screen(screen: pygame):
         pygame.display.flip()
 
 
-def timer(screen :pygame):
-    
+def timer(screen: pygame):
     for i in range(5, -1, -1):
         decompte = pygame.image.load(f"images/{i}.jpg").convert()
         screen.blit(pygame.transform.scale(decompte, (width, height)), (0, 0))
@@ -104,7 +100,7 @@ def timer(screen :pygame):
         time.sleep(1)
 
 
-def affichage(path: str,screen : pygame):
+def affichage(path: str, screen: pygame):
     # affichage de l'image
     affichage = pygame.image.load(path).convert()
     screen.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
@@ -217,18 +213,17 @@ def print_picture(path):
     # Envoyer le fichier à l'imprimante
     os.system(f"lp -d {printer_name} {path}")
 
-def afficher_retour_video(screen:pygame):
-    
+
+def afficher_retour_video(screen: pygame):
     # Ouvre la webcam (0 est l'index de la première webcam)
     capture = cv2.VideoCapture(0)
 
     if not capture.isOpened():
         print("Erreur : Impossible d'ouvrir la webcam")
         return
-    
-    # Créer une fenêtre Pygame
-    pygame.display.set_caption('Retour vidéo')
 
+    # Créer une fenêtre Pygame
+    pygame.display.set_caption("Retour vidéo")
 
     # Capture frame-by-frame
     ret, frame = capture.read()
@@ -238,11 +233,15 @@ def afficher_retour_video(screen:pygame):
     screen_width, screen_height = screen.get_size()
     # Convertir l'image de BGR (OpenCV) à RGB (Pygame)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    frame = cv2.resize(frame, (screen_height,screen_width))
+    frame = cv2.resize(frame, (screen_height, screen_width))
     # Convertir l'image à un format que Pygame peut afficher
     frame = pygame.surfarray.make_surface(frame)
     # Afficher l'image
     screen.blit(frame, (0, 0))
+    text1 = font_small.render("Appuyer sur le déclencheur", 1, BLACK)
+    text2 = font_small.render("pour prendre une photo", 1, BLACK)
+    screen.blit(text1, (300, 300))
+    screen.blit(text2, (300, 350))
     pygame.display.update()
     if GPIO.input(BUTTON_PIN_2) == GPIO.LOW:
         capture.release()
@@ -259,15 +258,14 @@ def main():
     os.system(f" rm -r {home}/tmp")
     creationdossier("documents/tmp")
     while running:
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z :
+                if event.key == pygame.K_z:
                     in_welcome_screen = not in_welcome_screen
                     DECLENCHEUR = True
-                if event.key == pygame.K_q :
+                if event.key == pygame.K_q:
                     running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and not in_welcome_screen:
                 for i in range(len(toggles)):
@@ -278,8 +276,7 @@ def main():
 
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
-            
-                
+
             if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
                 DECLENCHEUR = False
 
@@ -309,7 +306,7 @@ def main():
                         os.system(f"cp {home}/tmp/*jpg {path_usb_droit_a__l_image}")
 
                 path = f"{home}/tmp/{os.listdir(f'{home}/tmp/')[0]}"
-                affichage(path=path,screen=screen)
+                affichage(path=path, screen=screen)
                 time.sleep(8)
                 DECLENCHEUR = True
                 if os.environ.get("PRINT"):
