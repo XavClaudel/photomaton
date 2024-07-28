@@ -284,7 +284,7 @@ def main():
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
             if os.environ.get("RETOUR_IMAGE"):
-                print(f"{os.environ.get("RETOUR_IMAGE")}")
+                print(f'{os.environ.get("RETOUR_IMAGE")}')
                 afficher_retour_video(screen=screen)
 
             elif GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
