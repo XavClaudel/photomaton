@@ -251,7 +251,7 @@ def afficher_retour_video(screen:pygame):
         frame = pygame.surfarray.make_surface(frame)
         print(f"frame2:{frame}")
         # Afficher l'image
-        screen.blit(frame, (400, 0))
+        screen.blit(frame, (200, 0))
         pygame.display.update()
 
     # Libère la capture et ferme Pygame
