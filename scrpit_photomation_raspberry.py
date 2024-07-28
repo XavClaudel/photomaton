@@ -349,7 +349,7 @@ def main():
 
                 if os.environ.get("DOWNLOAD"):
                     print("DOWNLOAD")
-                    os.system(f"cd {path} && python -m http.server 8000")
+                    os.system(f"cd {home}/tmp/ && python -m http.server 8000")
                     qrcode=generate_qr_code(image_path=path)
                     affichage(path=qrcode,screen=screen,width=width,height=height)
                     time.sleep(20)
