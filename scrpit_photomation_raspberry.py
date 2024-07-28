@@ -325,7 +325,8 @@ def main():
 
                 if os.environ.get("DOWNLOAD"):
                     print("DOWNLOAD")
-                    
+                    if not os.path.exists('static'):
+                        os.makedirs('static')
                     app = Flask(__name__)
                     app.run(debug=True)   
                     @app.route('/')
@@ -347,6 +348,7 @@ def main():
                         # Sauvegarder le QR code en tant qu'image temporaire
                         qr_code_path = "static/qrcode.png"
                         img.save(qr_code_path)
+                        print("HERE")
                         affichage(path=qr_code_path,screen=screen)
                         time.sleep(20)
                         # Page HTML qui affiche le QR code
