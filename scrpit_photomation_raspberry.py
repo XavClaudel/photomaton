@@ -347,7 +347,8 @@ def main():
                     print("DOWNLOAD")
                     os.system(f"cd {path} && python -m http.server 8000")
                     qrcode=generate_qr_code(image_path=path)
-                    affichage(path=qrcode,screen=screen)
+                    screen2 = pygame.display.set_mode((width, height))
+                    affichage(path=qrcode,screen=screen2)
                     time.sleep(20)
                     os.system(f"rm {qrcode}")
 
