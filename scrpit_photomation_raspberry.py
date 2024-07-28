@@ -7,6 +7,7 @@ import subprocess
 import qrcode
 import RPi.GPIO as GPIO, time
 import cups
+import cv2
 
 # déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
@@ -36,7 +37,7 @@ font = pygame.font.Font(None, 74)
 
 
 # Variables d'environnement
-env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB"]
+env_vars = ["DROIT_A_L_IMAGE", "PRINT", "DOWNLOAD", "CLES_USB","RETOUR_IMAGE"]
 
 # États initiaux des boutons glissants
 toggles = [os.getenv(var) == "TRUE" for var in env_vars]
@@ -141,6 +142,7 @@ def init():
     os.environ.get("PRINT", False)
     os.environ.get("DOWNLOAD", False)
     os.environ.get("CLES_USB", False)
+    os.environ.get("RETOUR_IMAGE", False)
     creationdossier("documents/photos/droit_a_l_image")
     creationdossier("documents/photos/pas_droit_a_l_image")
 
@@ -211,8 +213,44 @@ def print_picture(path):
     # Envoyer le fichier à l'imprimante
     os.system(f"lp -d {printer_name} {path}")
 
+def afficher_retour_video(screen:pygame):
+    
+    # Ouvre la webcam (0 est l'index de la première webcam)
+    capture = cv2.VideoCapture(0)
 
+    if not capture.isOpened():
+        print("Erreur : Impossible d'ouvrir la webcam")
+        return
+    
+    # Créer une fenêtre Pygame
+    pygame.display.set_caption('Retour vidéo')
 
+    # Boucle principale
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Capture frame-by-frame
+        ret, frame = capture.read()
+
+        if not ret:
+            print("Erreur : Impossible de lire l'image de la webcam")
+            break
+
+        # Convertir l'image de BGR (OpenCV) à RGB (Pygame)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # Convertir l'image à un format que Pygame peut afficher
+        frame = pygame.surfarray.make_surface(frame)
+
+        # Afficher l'image
+        screen.blit(frame, (0, 0))
+        pygame.display.update()
+
+    # Libère la capture et ferme Pygame
+    capture.release()
 
 
 def main():
@@ -245,8 +283,11 @@ def main():
 
         if in_welcome_screen:
             draw_welcome_screen(screen=screen)
+            if os.environ.get("RETOUR_IMAGE"):
+                print(f"{os.environ.get("RETOUR_IMAGE")}")
+                afficher_retour_video(screen=screen)
 
-            if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
+            elif GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
                 DECLENCHEUR = False
 
                 if os.environ.get("CLES_USB") and config_usb:

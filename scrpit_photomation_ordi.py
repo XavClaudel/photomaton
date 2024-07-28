@@ -303,8 +303,7 @@ def main():
                             for event in pygame.event.get():
                                 if event.type == pygame.KEYDOWN:
                                     if event.key == pygame.K_p and impression:
-                                        x=os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
-                                        print(x)
+                                        os.system(f'lp -d Canon_SELPHY_CP1500 {path}')
                                         time.sleep(60)
                                         draw_welcome_screen(screen=fenetre)
 
