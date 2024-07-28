@@ -229,33 +229,26 @@ def afficher_retour_video(screen:pygame):
     # Créer une fenêtre Pygame
     pygame.display.set_caption('Retour vidéo')
 
-    # Boucle principale
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
 
-        # Capture frame-by-frame
-        ret, frame = capture.read()
+    # Capture frame-by-frame
+    ret, frame = capture.read()
 
-        if not ret:
-            print("Erreur : Impossible de lire l'image de la webcam")
-            break
-        screen_width, screen_height = screen.get_size()
-        # Convertir l'image de BGR (OpenCV) à RGB (Pygame)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = cv2.resize(frame, (screen_height,screen_width))
-        # Convertir l'image à un format que Pygame peut afficher
-        print(f"frame:{frame}")
-        frame = pygame.surfarray.make_surface(frame)
-        print(f"frame2:{frame}")
-        # Afficher l'image
-        screen.blit(frame, (0, 0))
-        pygame.display.update()
+    if not ret:
+        print("Erreur : Impossible de lire l'image de la webcam")
+    screen_width, screen_height = screen.get_size()
+    # Convertir l'image de BGR (OpenCV) à RGB (Pygame)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame = cv2.resize(frame, (screen_height,screen_width))
+    # Convertir l'image à un format que Pygame peut afficher
+    print(f"frame:{frame}")
+    frame = pygame.surfarray.make_surface(frame)
+    print(f"frame2:{frame}")
+    # Afficher l'image
+    screen.blit(frame, (0, 0))
+    pygame.display.update()
 
-    # Libère la capture et ferme Pygame
-    capture.release()
+
+    #capture.release()
 
 
 def main():
