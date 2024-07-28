@@ -8,6 +8,8 @@ import qrcode
 import RPi.GPIO as GPIO, time
 import cups
 import cv2
+from flask import Flask, send_file, render_template_string
+
 
 # déclaration des ports GPIO que l'on utilise
 GPIO.setmode(GPIO.BCM)
@@ -323,6 +325,43 @@ def main():
 
                 if os.environ.get("DOWNLOAD"):
                     print("DOWNLOAD")
+                    
+                    app = Flask(__name__)
+                    app.run(debug=True)   
+                    @app.route('/')
+                    def index():
+                        # URL de l'image (chemin relatif à partir de la racine du serveur)
+                        image_url = f"http://127.0.0.1:5000/image"
+                        
+                        # Générer le QR code pour l'URL de l'image
+                        qr = qrcode.QRCode(
+                            version=1,
+                            error_correction=qrcode.constants.ERROR_CORRECT_L,
+                            box_size=10,
+                            border=4,
+                        )
+                        qr.add_data(image_url)
+                        qr.make(fit=True)
+                        img = qr.make_image(fill='black', back_color='white')
+                        
+                        # Sauvegarder le QR code en tant qu'image temporaire
+                        qr_code_path = "static/qrcode.png"
+                        img.save(qr_code_path)
+                        
+                        # Page HTML qui affiche le QR code
+                        html_content = f'''
+                        <html>
+                        <body>
+                            <h1>Scannez le QR code pour accéder à l'image</h1>
+                            <img src="/{qr_code_path}" alt="QR code">
+                        </body>
+                        </html>
+                        '''
+                        return render_template_string(html_content)
+
+                    @app.route('/image')
+                    def get_image(path:str):
+                        return send_file(path, mimetype='image/jpeg')
 
                 os.system(f" rm {home}/tmp/*jpg")
                 draw_welcome_screen(screen=screen)
