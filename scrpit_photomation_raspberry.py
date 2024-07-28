@@ -240,13 +240,11 @@ def afficher_retour_video(screen:pygame):
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame = cv2.resize(frame, (screen_height,screen_width))
     # Convertir l'image à un format que Pygame peut afficher
-    print(f"frame:{frame}")
     frame = pygame.surfarray.make_surface(frame)
-    print(f"frame2:{frame}")
     # Afficher l'image
     screen.blit(frame, (0, 0))
     pygame.display.update()
-    if GPIO.input(BUTTON_PIN_2) == GPIO.LOW
+    if GPIO.input(BUTTON_PIN_2) == GPIO.LOW:
         capture.release()
 
 
