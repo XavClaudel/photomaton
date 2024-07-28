@@ -242,10 +242,10 @@ def afficher_retour_video(screen:pygame):
         if not ret:
             print("Erreur : Impossible de lire l'image de la webcam")
             break
-
+        screen_width, screen_height = screen.get_size()
         # Convertir l'image de BGR (OpenCV) à RGB (Pygame)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
+        frame = cv2.resize(frame, (screen_width, screen_height))
         # Convertir l'image à un format que Pygame peut afficher
         print(f"frame:{frame}")
         frame = pygame.surfarray.make_surface(frame)
