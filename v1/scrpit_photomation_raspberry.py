@@ -144,7 +144,7 @@ def monitor_usb(home: str) -> str:
     for device in iter(monitor.poll, None):
         if device.action == "add":
             device_node = device.device_node
-            mount_point = f"{home}/Documents/cles_usb_photos"
+            mount_point = f"{home}/cles_usb_photos"
             if not os.path.exists(mount_point):  # Vérifier si le dossier n'existe pas
                 os.makedirs(mount_point)  # Créer le dossier
             print(f"Nouvelle partition détectée : {device_node}")
@@ -158,7 +158,7 @@ def init():
     os.environ.get("DOWNLOAD", False)
     os.environ.get("CLES_USB", False)
     os.environ.get("RETOUR_IMAGE", False)
-    creationdossier("Documents/photos")
+    creationdossier("photos")
 
 
 def creationdossier(sous_chemin: str):
@@ -319,9 +319,9 @@ def main():
     in_welcome_screen = False
     config_usb = True
     DECLENCHEUR = False
-    home = f"{os.environ.get('HOME')}/Documents"
+    home = f"{os.environ.get('HOME')}"
     os.system(f" rm -r {home}/tmp")
-    creationdossier("Documents/tmp")
+    creationdossier("/tmp")
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -357,7 +357,7 @@ def main():
                     config_usb = False
                 timer(screen=screen)
                 os.system(
-                    f"gphoto2 --capture-image-and-download --filename {os.environ.get('HOME')}/Documents/tmp/capt_%y_%m_%d-%H_%M_%S.jpg"
+                    f"gphoto2 --capture-image-and-download --filename {os.environ.get('HOME')}/tmp/capt_%y_%m_%d-%H_%M_%S.jpg"
                 )
 
                 os.system(f"cp {home}/tmp/*jpg {home}/photos")

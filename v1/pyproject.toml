@@ -1,0 +1,28 @@
+[project]
+name = "photomaton"
+version = "1.0.0"
+description = "Script pyhton pour le photomaton"
+authors = [
+    { name = "Xavier Claudel", email ="xavierclaudel@protonmail.com" }
+]
+license = { text = "GNU-GPL" }
+dependencies = [
+    "pygame",
+    "pyudev",
+    "pillow",
+    "gphoto2",
+    "qrcode",
+    "RPi.GPIO",
+    "pycups",
+]
+requires-python = ">=3.11,<4.0"
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
