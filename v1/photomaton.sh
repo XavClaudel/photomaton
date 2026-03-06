@@ -1,77 +1,129 @@
 #!/usr/bin/env bash
 set -e
 
-# Vérifie si gphoto2 est installé (binaire système)
-if ! command -v gphoto2 &> /dev/null; then
-    echo "📸 gphoto2 non trouvé, installation..."
-    if command -v apt &> /dev/null; then
-        sudo apt update && sudo apt install -y gphoto2
-    elif command -v dnf &> /dev/null; then
-        sudo dnf install -y gphoto2
-    else
-        echo "⚠️ Impossible de détecter un gestionnaire de paquets compatible. Installe gphoto2 manuellement."
-        exit 1
-    fi
+echo "🚀 Initialisation du photomaton"
+
+############################################
+# Vérification connexion internet
+############################################
+
+has_internet() {
+    ping -c 1 -W 2 8.8.8.8 > /dev/null 2>&1
+}
+
+INTERNET=false
+if has_internet; then
+    INTERNET=true
+    echo "🌐 Internet disponible"
 else
-    echo "✅ gphoto2 déjà installé"
+    echo "⚠️ Pas de connexion internet"
 fi
 
+############################################
+# Détection gestionnaire de paquets
+############################################
 
-# Vérifie si pmount est installé (binaire système)
-if ! command -v pmount &> /dev/null; then
-    echo "📸 pmount non trouvé, installation..."
-    if command -v apt &> /dev/null; then
-        sudo apt update && sudo apt install -y pmount
-    elif command -v dnf &> /dev/null; then
-        sudo dnf install -y pmount
-    else
-        echo "⚠️ Impossible de détecter un gestionnaire de paquets compatible. Installe pmount manuellement."
-        exit 1
-    fi
-else
-    echo "✅ pmount déjà installé"
+PKG_MANAGER=""
+
+if command -v apt &> /dev/null; then
+    PKG_MANAGER="apt"
+elif command -v dnf &> /dev/null; then
+    PKG_MANAGER="dnf"
 fi
 
-# Vérifie si libcups2-dev est installé (binaire système)
-if ! command -v libcups2-dev &> /dev/null; then
-    echo "📸 libcups2-dev non trouvé, installation..."
-    if command -v apt &> /dev/null; then
-        sudo apt update && sudo apt install -y libcups2-dev
-    elif command -v dnf &> /dev/null; then
-        sudo dnf install -y libcups2-dev
-    else
-        echo "⚠️ Impossible de détecter un gestionnaire de paquets compatible. Installe pmount manuellement."
-        exit 1
-    fi
-else
-    echo "✅ pmount déjà installé"
+############################################
+# Mise à jour des dépôts (une seule fois)
+############################################
+
+if [ "$INTERNET" = true ] && [ "$PKG_MANAGER" = "apt" ]; then
+    echo "📦 Mise à jour des dépôts"
+    sudo apt update
 fi
 
-# Crée un venv local si pas déjà présent
+############################################
+# Fonction installation package
+############################################
+
+install_package() {
+
+    PACKAGE=$1
+    COMMAND=$2
+
+    if ! command -v "$COMMAND" &> /dev/null; then
+
+        echo "📦 $PACKAGE non trouvé"
+
+        if [ "$INTERNET" = false ]; then
+            echo "⚠️ Impossible d'installer $PACKAGE sans internet"
+            return
+        fi
+
+        echo "⬇️ Installation de $PACKAGE..."
+
+        if [ "$PKG_MANAGER" = "apt" ]; then
+            sudo apt install -y "$PACKAGE"
+        elif [ "$PKG_MANAGER" = "dnf" ]; then
+            sudo dnf install -y "$PACKAGE"
+        else
+            echo "⚠️ Gestionnaire de paquet non supporté"
+            exit 1
+        fi
+
+    else
+        echo "✅ $PACKAGE déjà installé"
+    fi
+}
+
+############################################
+# Installation dépendances système
+############################################
+
+install_package "gphoto2" "gphoto2"
+install_package "pmount" "pmount"
+install_package "libcups2-dev" "lp"
+
+############################################
+# Création environnement virtuel
+############################################
+
 if [ ! -d ".venv" ]; then
-    echo "📦 Création d'un environnement virtuel local..."
+    echo "🐍 Création environnement virtuel"
     python3 -m venv .venv
-
 fi
 
-# Active le venv
 source .venv/bin/activate
 
-# Vérifie si pip est dispo
-pip install --upgrade pip setuptools wheel
-pip uninstall cups
-# Vérifie si poetry est installé dans ce venv
-if ! command -v poetry &> /dev/null; then
-    echo "🚀 Installation de Poetry dans le venv..."
-    pip install poetry
+############################################
+# Installation outils python
+############################################
+
+if [ "$INTERNET" = true ]; then
+
+    echo "📦 Mise à jour pip"
+    pip install --upgrade pip setuptools wheel
+
+    echo "🧹 Nettoyage cups"
+    pip uninstall -y cups || true
+
+    if ! command -v poetry &> /dev/null; then
+        echo "🚀 Installation Poetry"
+        pip install poetry
+    else
+        echo "✅ Poetry déjà installé"
+    fi
+
+    echo "📦 Installation dépendances Python"
+    poetry lock
+    poetry install
+
+else
+    echo "⚠️ Installation Python ignorée (pas d'internet)"
 fi
 
-echo "📦 Installation des dépendances avec Poetry..."
-poetry lock
-poetry install
+############################################
+# Lancement photomaton
+############################################
 
+echo "🎬 Lancement du photomaton..."
 
-
-
-echo "🚀 Lancement du photomaton..."
-poetry run python scrpit_photomation_raspberry.py
+poetry run python script_photomaton_rasp_v2.py
