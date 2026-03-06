@@ -42,7 +42,9 @@ font = pygame.font.Font(None, 74)
 
 
 # Variables d'environnement
-env_vars = ["PRINT", "DOWNLOAD", "CLES_USB", "RETOUR_IMAGE"]
+env_vars = ["IMPRIMER", "CLES_USB"]
+#TODO DOWNLOAD et RETOUR_IAMGE
+#env_vars = ["IMPRIMER", "DOWNLOAD", "CLES_USB", "RETOUR_IMAGE"]
 
 # États initiaux des boutons glissants
 toggles = [os.getenv(var) == "TRUE" for var in env_vars]
@@ -54,7 +56,6 @@ IMAGE_PATH = ""
 class ImageHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path :
-            print("here")
             try:
                 with open(self.path, 'rb') as file:
                     self.send_response(200)
@@ -68,7 +69,9 @@ class ImageHTTPRequestHandler(BaseHTTPRequestHandler):
 
 def draw_settings_screen(screen: pygame, toggles: list):
     screen.fill(BLACK)
-    params = ["PRINT", "DOWNLOAD", "CLES_USB", "RETOUR_IMAGE"]
+    params = ["IMPRIMER", "CLES_USB"]
+    #TODO DOWNLOAD et RETOUR_IAMGE
+    #params = ["IMPRIMER", "DOWNLOAD", "CLES_USB", "RETOUR_IMAGE"]
     for i, param in enumerate(params):
         text = font_small.render(param, 1, WHITE)
         screen.blit(text, (100, 100 + i * 100))
@@ -154,10 +157,12 @@ def monitor_usb(home: str) -> str:
 
 
 def init():
-    os.environ.get("PRINT", False)
+    os.environ.get("IMPRIMER", False)
     os.environ.get("DOWNLOAD", False)
     os.environ.get("CLES_USB", False)
     os.environ.get("RETOUR_IMAGE", False)
+    os.environ.get("VALIDER", False)
+
     creationdossier("photos")
 
 
@@ -236,6 +241,7 @@ def capture_liveview_frame():
     camera_file = camera.capture_preview()
     file_data = gp.check_result(gp.gp_file_get_data_and_size(camera_file))
     return file_data
+
 def display_liveview(DECLENCHEUR):
     # Initialiser libgphoto2 et l'appareil photo
     frame_data = capture_liveview_frame()
@@ -250,6 +256,7 @@ def display_liveview(DECLENCHEUR):
         
     # Mettre à jour l'affichage
     pygame.display.flip()
+
 # Fonction pour lancer le serveur
 def run_server():
     server_address = ("", PORT)
@@ -299,6 +306,7 @@ def get_ip_address(interface):
         print(f'Erreur lors de l\'obtention de l\'adresse IP : {e}')
     except Exception as e:
         return f"Erreur lors de la récupération de l'IP réseau: {e}"
+
 def create_hotspot(ssid, password):
     # Créer un hotspot Wi-Fi
     try:
@@ -338,7 +346,14 @@ def main():
                     if toggle_rect.collidepoint(event.pos):
                         toggles[i] = not toggles[i]
                         set_environment_variable(i, toggles[i])
+                
+                if os.environ.get("CLES_USB") and config_usb:
+                    device_node = monitor_usb(home)
+                    path_usb = creationdossier_usb(
+                        device_node, field="photos"
+                    )
 
+                    config_usb = False
         if in_welcome_screen:
             if os.environ.get("RETOUR_IMAGE"):
                 display_liveview(DECLENCHEUR=DECLENCHEUR)
@@ -348,13 +363,7 @@ def main():
             if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
                 DECLENCHEUR = False
 
-                if os.environ.get("CLES_USB") and config_usb:
-                    device_node = monitor_usb(home)
-                    path_usb = creationdossier_usb(
-                        device_node, field="photos"
-                    )
-
-                    config_usb = False
+                
                 timer(screen=screen)
                 os.system(
                     f"gphoto2 --capture-image-and-download --filename {os.environ.get('HOME')}/tmp/capt_%y_%m_%d-%H_%M_%S.jpg"
@@ -368,7 +377,7 @@ def main():
                 affichage(path=path, screen=screen, width=width, height=height)
                 time.sleep(8)
                 DECLENCHEUR = True
-                if os.environ.get("PRINT"):
+                if os.environ.get("IMPRIMER"):
                     while True:
                         button_pressed = False
                         draw_print_choice_screen(path=path, screen=screen)
@@ -378,7 +387,7 @@ def main():
                                 button_pressed = True
                                 draw_print_screen(screen=screen)
                                 print_picture(path=path)
-                                time.sleep(65)
+                                time.sleep(60)
 
                                 break
                         if not button_pressed:
