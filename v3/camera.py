@@ -1,19 +1,19 @@
 import subprocess
-import os
+from pathlib import Path
 from datetime import datetime
 
-def capture_photo(tmp_dir):
-    filename = datetime.now().strftime("capt_%Y_%m_%d-%H_%M_%S.jpg")
-    path = os.path.join(tmp_dir, filename)
+def capture_image(tmp_dir):
 
-    try:
-        subprocess.run([
-            "gphoto2",
-            "--capture-image-and-download",
-            "--filename",
-            path
-        ], check=True)
-    except subprocess.CalledProcessError:
-        raise RuntimeError("Erreur capture photo")
+    filename = datetime.now().strftime("photo_%Y%m%d_%H%M%S.jpg")
+    path = Path(tmp_dir) / filename
+
+    cmd = [
+        "gphoto2",
+        "--capture-image-and-download",
+        "--filename",
+        str(path)
+    ]
+
+    subprocess.run(cmd, check=True)
 
     return path

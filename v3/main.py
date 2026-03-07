@@ -1,44 +1,55 @@
 import pygame
+import RPi.GPIO as GPIO
 import time
 
 from config import *
-from camera import capture_photo
-from printer import print_picture
-from display import init_display
+from camera import capture_image
+from printer import print_photo
 from utils import create_dir
+from ui import welcome
 
+pygame.init()
 
-def main():
+screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 
-    create_dir(PHOTO_DIR)
-    create_dir(TMP_DIR)
+font_big = pygame.font.Font(None,120)
+font_small = pygame.font.Font(None,50)
 
-    screen = init_display()
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    running = True
+create_dir(PHOTO_DIR)
+create_dir(TMP_DIR)
 
-    while running:
+running = True
 
-        for event in pygame.event.get():
+while running:
 
-            if event.type == pygame.QUIT:
-                running = False
+    welcome(screen, font_big, font_small)
 
-        # déclenchement photo
-        path = capture_photo(TMP_DIR)
+    if GPIO.input(BUTTON_PIN) == GPIO.LOW:
 
-        print("Photo prise :", path)
+        for i in range(COUNTDOWN,0,-1):
 
-        # affichage
-        img = pygame.image.load(path)
+            screen.fill((0,0,0))
 
-        screen.blit(img, (0,0))
+            text = font_big.render(str(i),True,(255,255,255))
+
+            screen.blit(text,(600,300))
+
+            pygame.display.flip()
+
+            time.sleep(1)
+
+        path = capture_image(TMP_DIR)
+
+        print("Photo:",path)
+
+        img = pygame.image.load(str(path))
+        screen.blit(pygame.transform.scale(img,screen.get_size()),(0,0))
+
         pygame.display.flip()
 
-        time.sleep(5)
+        time.sleep(DISPLAY_TIME)
 
-        print_picture(path)
-
-
-if __name__ == "__main__":
-    main()
+        print_photo(path)

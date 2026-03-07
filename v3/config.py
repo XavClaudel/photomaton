@@ -7,9 +7,11 @@ TMP_DIR = f"{HOME}/tmp"
 
 PORT = 8000
 
+HOTSPOT_SSID = "photomaton"
+HOTSPOT_PASSWORD = "photomaton"
+
 BUTTON_PIN = 2
 
-WIFI_SSID = "photomaton"
-WIFI_PASSWORD = "photomaton"
-
-COUNTDOWN_IMAGES = "images"
+COUNTDOWN = 5
+DISPLAY_TIME = 8
+PRINT_TIMEOUT = 10

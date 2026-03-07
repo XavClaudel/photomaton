@@ -1,16 +1,18 @@
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler
+from socketserver import TCPServer
 import threading
+import os
 
-def start_server(port, directory):
 
-    class Handler(SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=directory, **kwargs)
+def start_server(folder, port):
 
-    server = HTTPServer(("", port), Handler)
+    os.chdir(folder)
 
-    thread = threading.Thread(target=server.serve_forever)
+    handler = SimpleHTTPRequestHandler
+    httpd = TCPServer(("", port), handler)
+
+    thread = threading.Thread(target=httpd.serve_forever)
     thread.daemon = True
     thread.start()
 
-    return server
+    return httpd
