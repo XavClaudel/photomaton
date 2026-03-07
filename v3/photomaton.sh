@@ -126,4 +126,4 @@ fi
 
 echo "🎬 Lancement du photomaton..."
 
-poetry run python scrpit_photomation_raspberry.py
+poetry run python main.py

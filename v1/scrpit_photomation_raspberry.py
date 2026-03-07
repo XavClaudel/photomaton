@@ -160,7 +160,6 @@ def init():
     os.environ.get("IMPRIMER", False)
     os.environ.get("DOWNLOAD", False)
     os.environ.get("CLES_USB", False)
-    os.environ.get("RETOUR_IMAGE", False)
     os.environ.get("VALIDER", False)
 
     creationdossier("photos")
@@ -231,31 +230,6 @@ def print_picture(path):
 
     # Envoyer le fichier à l'imprimante
     os.system(f"lp -d {printer_name} {path}")
-
-def capture_liveview_frame():
-    context = gp.Context()
-    camera = gp.Camera()
-    camera.init(context)
-
-    # Capture d'une image LiveView en utilisant libgphoto2
-    camera_file = camera.capture_preview()
-    file_data = gp.check_result(gp.gp_file_get_data_and_size(camera_file))
-    return file_data
-
-def display_liveview(DECLENCHEUR):
-    # Initialiser libgphoto2 et l'appareil photo
-    frame_data = capture_liveview_frame()
-
-    # Charger l'image capturée en tant que surface Pygame
-    image_surface = pygame.image.load(frame_data, 'jpg')
-    image_surface = pygame.transform.scale(image_surface, (width, height))
-
-    # Effacer l'écran et afficher l'image capturée
-    screen.fill(BLACK)
-    screen.blit(image_surface, (0, 0))
-        
-    # Mettre à jour l'affichage
-    pygame.display.flip()
 
 # Fonction pour lancer le serveur
 def run_server():
@@ -355,10 +329,8 @@ def main():
 
                     config_usb = False
         if in_welcome_screen:
-            if os.environ.get("RETOUR_IMAGE"):
-                display_liveview(DECLENCHEUR=DECLENCHEUR)
-            else:
-                draw_welcome_screen(screen=screen, DECLENCHEUR=DECLENCHEUR)
+     
+            draw_welcome_screen(screen=screen, DECLENCHEUR=DECLENCHEUR)
 
             if GPIO.input(BUTTON_PIN_2) == GPIO.LOW and DECLENCHEUR:
                 DECLENCHEUR = False
