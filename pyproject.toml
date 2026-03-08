@@ -9,13 +9,11 @@ license = { text = "GNU-GPL" }
 dependencies = [
     "pygame",
     "pyudev",
-    "pillow",
-    "gphoto2",
-    "qrcode",
-    "RPi.GPIO",
-    "pycups",
+    "psutil",
+    "flask",
+    "pycups"
 ]
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.13,<4.0"
 
 [tool.pytest.ini_options]
 addopts = "-ra -q"

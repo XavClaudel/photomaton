@@ -81,6 +81,8 @@ install_package() {
 install_package "gphoto2" "gphoto2"
 install_package "pmount" "pmount"
 install_package "libcups2-dev" "lp"
+install_package "python3-dev" "libcups2-dev" "gcc"
+install_package "python3-cups"
 
 ############################################
 # Création environnement virtuel
@@ -126,4 +128,4 @@ fi
 
 echo "🎬 Lancement du photomaton..."
 
-poetry run python scrpit_photomation_raspberry.py
+poetry run python main.py

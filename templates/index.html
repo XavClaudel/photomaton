@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Photomaton</title>
+</head>
+
+<body>
+
+<h1>Photos du photomaton</h1>
+
+{% for photo in photos %}
+
+<div>
+<img src="/photo/{{ photo }}" width="300">
+<br>
+<a href="/photo/{{ photo }}" download>Télécharger</a>
+</div>
+
+{% endfor %}
+
+</body>
+</html>
