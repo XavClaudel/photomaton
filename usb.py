@@ -1,6 +1,4 @@
-import pyudev
 import os
-import subprocess
 import psutil
 import time
 import shutil
@@ -58,15 +56,12 @@ def wait_for_mount(device):
 
 def copy_photos_to_usb(photo_path:str, usb_mount:str):
     dest = os.path.join(usb_mount, f"photomaton_{date.today()}")
-    dest_local = os.path.join(PHOTO_DIR, f"photomaton_{date.today()}")
 
     os.makedirs(dest, exist_ok=True)
-    os.makedirs(dest_local, exist_ok=True)
 
     if os.path.isfile(photo_path):
         shutil.copy(photo_path, dest)
-        shutil.copy(photo_path, dest_local)
-    print("photos copiées")
+    print("photos copiées sur la clès USB")
 
 
 

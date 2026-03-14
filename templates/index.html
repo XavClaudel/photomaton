@@ -1,22 +1,42 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+<meta charset="UTF-8">
 <title>Photomaton</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+<script>
+setTimeout(function(){
+   location.reload();
+}, 15000);   // recharge la page toutes les 15 secondes
+</script>
+
 </head>
 
 <body>
 
-<h1>Photos du photomaton</h1>
+<h1>Photos du Photomaton</h1>
+
+<div class="gallery">
 
 {% for photo in photos %}
 
-<div>
-<img src="/photo/{{ photo }}" width="300">
-<br>
-<a href="/photo/{{ photo }}" download>Télécharger</a>
+<div class="photo">
+
+<img src="/photo/{{ photo }}">
+
+<a href="/photo/{{ photo }}" download>
+Télécharger
+</a>
+
 </div>
 
 {% endfor %}
 
+</div>
+
 </body>
+
 </html>

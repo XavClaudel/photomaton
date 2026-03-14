@@ -1,6 +1,9 @@
 import os
 import json
 import pygame
+from config import *
+import shutil
+from datetime import date
 
 
 def set_environnement_variable(settings:list[dict]):
@@ -37,3 +40,13 @@ def load_params(params:dict):
 def get_ecran_size(screen:pygame.Surface):
     screen_width, screen_height = screen.get_size()
     return screen_width, screen_height
+
+
+def copy_photos_to_local(photo_path:str):
+    dest_local = os.path.join(PHOTO_DIR, f"photomaton_{date.today()}")
+
+    os.makedirs(dest_local, exist_ok=True)
+
+    if os.path.isfile(photo_path):
+        shutil.copy(photo_path, dest_local)
+    print("photos copiées en local")

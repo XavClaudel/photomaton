@@ -2,7 +2,7 @@ import os
 
 HOME = os.getenv("HOME")
 PWD = os.getenv("PWD")
-PHOTO_DIR = f"{PWD}/photos_test"
+PHOTO_DIR = f"{PWD}/photo"
 TMP_DIR = f"{PWD}/tmp_test"
 
 PARAMS = {

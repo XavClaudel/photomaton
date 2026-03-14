@@ -1,25 +1,15 @@
 import subprocess
 
-# def create_hotspot(ssid:str, password:str):
-#     # Créer un hotspot Wi-Fi
-#     try:
-#         # Créer un nouveau point d'accès
-#         subprocess.run([
-#             'nmcli', 'device', 'wifi', 'hotspot',
-#             'ifname', 'wlan0', 'con-name', ssid,
-#             'ssid', ssid, 'band', 'bg', 'password', password
-#         ], check=True)
-#         print(f'Hotspot "{ssid}" créé avec succès.')
-#     except subprocess.CalledProcessError as e:
-#         print(f'Erreur lors de la création du hotspot : {e}')
+def hotspot_exists(name: str) -> bool:
+    result = subprocess.run(
+        ["nmcli", "-t", "-f", "NAME", "connection", "show"],
+        capture_output=True,
+        text=True
+    )
 
-import subprocess
-
+    return name in result.stdout.splitlines()
 
 def create_hotspot(ssid: str, password: str, interface: str | None = None):
-
-    if len(password) < 8:
-        raise ValueError("Le mot de passe doit contenir au moins 8 caractères")
 
     if interface is None:
         interface = get_wifi_interface()
@@ -28,28 +18,45 @@ def create_hotspot(ssid: str, password: str, interface: str | None = None):
         print("Aucune interface Wi-Fi détectée")
         return False
 
-    cmd = [
-        "nmcli",
-        "device",
-        "wifi",
-        "hotspot",
-        "ifname",
-        interface,
-        "con-name",
-        ssid,
-        "ssid",
-        ssid,
-        "password",
-        password
-    ]
-
     try:
-        subprocess.run(cmd, check=True)
-        print(f"Hotspot '{ssid}' créé sur {interface}")
+
+        # vérifier si la connexion existe déjà
+        if not hotspot_exists(ssid):
+
+            print("Création du hotspot...")
+
+            subprocess.run([
+                "nmcli", "connection", "add",
+                "type", "wifi",
+                "ifname", interface,
+                "mode", "ap",
+                "con-name", ssid,
+                "ssid", ssid
+            ], check=True)
+
+            subprocess.run([
+                "nmcli", "connection", "modify", ssid,
+                "wifi-sec.key-mgmt", "wpa-psk",
+                "wifi-sec.psk", password
+            ], check=True)
+
+            subprocess.run([
+                "nmcli", "connection", "modify", ssid,
+                "ipv4.method", "shared",
+                "ipv4.addresses", "192.168.4.1/24"
+            ], check=True)
+
+        # activer la connexion
+        subprocess.run([
+            "nmcli", "connection", "up", ssid
+        ], check=True)
+
+        print("Hotspot actif :", ssid)
+        HOTSPOT = True
         return True
 
     except subprocess.CalledProcessError as e:
-        print("Erreur lors de la création du hotspot :", e)
+        print("Erreur hotspot :", e)
         return False
     
 def get_wifi_interface() -> str | None:
