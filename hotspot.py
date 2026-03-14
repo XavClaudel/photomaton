@@ -20,7 +20,6 @@ def create_hotspot(ssid: str, password: str, interface: str | None = None):
 
     try:
 
-        # vérifier si la connexion existe déjà
         if not hotspot_exists(ssid):
 
             print("Création du hotspot...")
@@ -46,7 +45,6 @@ def create_hotspot(ssid: str, password: str, interface: str | None = None):
                 "ipv4.addresses", "192.168.4.1/24"
             ], check=True)
 
-        # activer la connexion
         subprocess.run([
             "nmcli", "connection", "up", ssid
         ], check=True)

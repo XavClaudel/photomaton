@@ -42,7 +42,7 @@ import time
 
 def wait_for_mount(device):
 
-    for _ in range(20):  # 10 secondes max
+    for _ in range(20):  
 
         for part in psutil.disk_partitions():
 

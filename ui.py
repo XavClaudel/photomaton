@@ -29,6 +29,8 @@ def welcome(screen: pygame.Surface, font_large, font_small):
 
     w, h = screen.get_size()
 
+    vertical_offset = -60
+
     start_button = pygame.Rect(
         w//2 - 150,
         h//2 + 120,
@@ -47,45 +49,41 @@ def welcome(screen: pygame.Surface, font_large, font_small):
                 exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-
-                if start_button.collidepoint(pygame.mouse.get_pos()):
+                if start_button.collidepoint(event.pos):
                     return True
 
-        # -------- BACKGROUND --------
         draw_background(screen)
 
-        # -------- CAMERA ICON --------
-        t = pygame.time.get_ticks() / 400
+        camera_img = pygame.image.load("assets/camera.png").convert_alpha()
+        camera_img = pygame.transform.smoothscale(camera_img, (140, 140))
 
-        pulse = 10 * math.sin(t)
+        rect = camera_img.get_rect(center=(
+            w // 2,
+            h // 2 - 120 + vertical_offset
+        ))
 
-        printer_img = pygame.image.load("assets/camera.png").convert_alpha()
-        printer_img = pygame.transform.scale(printer_img, (120,120))
+        screen.blit(camera_img, rect)
 
-        rect = printer_img.get_rect(center=(w//2, h//2 - 80))
-
-        screen.blit(printer_img, rect)
-
-
-        # -------- TITLE --------
         title = font_large.render("Photomaton", True, (255,255,255))
-
-        title_rect = title.get_rect(center=(w//2, h//2 - 20))
-
+        title_rect = title.get_rect(center=(
+            w // 2,
+            h // 2 - 20 + vertical_offset
+        ))
         screen.blit(title, title_rect)
 
-        # -------- TEXT --------
         text = font_small.render(
             "Touchez START pour prendre une photo",
             True,
             (220,220,220)
         )
 
-        text_rect = text.get_rect(center=(w//2, h//2 + 50))
+        text_rect = text.get_rect(center=(
+            w // 2,
+            h // 2 + 50 + vertical_offset
+        ))
 
         screen.blit(text, text_rect)
 
-        # -------- BUTTON --------
         draw_start_button(screen, start_button, font_small)
 
         pygame.display.flip()
@@ -164,23 +162,18 @@ def draw_print_choice_screen(screen: pygame.Surface, font):
                     running = False
                     return False
 
-        # -------- Background --------
         screen.fill((15,15,20))
 
-        # -------- Title --------
         title = font.render("Imprimer la photo ?", True, (255,255,255))
         title_rect = title.get_rect(center=(w//2, h//2 - 80))
         screen.blit(title, title_rect)
 
-        # -------- Button colors --------
         yes_color = (100,220,120) if yes_button.collidepoint(mouse) else (70,170,90)
         no_color  = (220,100,100) if no_button.collidepoint(mouse) else (170,70,70)
 
-        # -------- Draw buttons --------
         pygame.draw.rect(screen, yes_color, yes_button, border_radius=15)
         pygame.draw.rect(screen, no_color, no_button, border_radius=15)
 
-        # -------- Button text --------
         yes_text = font.render("OUI", True, (0,0,0))
         no_text  = font.render("NON", True, (0,0,0))
 
@@ -196,29 +189,34 @@ def draw_print_screen(screen: pygame.Surface, font_small):
 
     w, h = screen.get_size()
 
-    # icône imprimante
     printer_img = pygame.image.load("assets/printer.png").convert_alpha()
-    printer_img = pygame.transform.scale(printer_img, (120,120))
+    printer_img = pygame.transform.smoothscale(printer_img, (120, 120))
 
-    rect = printer_img.get_rect(center=(w//2, h//2 - 80))
-
-    screen.blit(printer_img, rect)
-    
-    # animation points ...
     dots = int(time.time() * 2) % 4
     message = "Impression" + "." * dots
+    text = font_small.render(message, True, (255, 255, 255))
 
-    text = font_small.render(message, True, (255,255,255))
-    text_rect = text.get_rect(center=(w//2, h//2 + 40))
+    spacing = 30
 
+    total_height = printer_img.get_height() + spacing + text.get_height()
+
+    start_y = (h - total_height) // 2
+
+    image_rect = printer_img.get_rect(
+        center=(w // 2, start_y + printer_img.get_height() // 2)
+    )
+
+    text_rect = text.get_rect(
+        center=(w // 2, start_y + printer_img.get_height() + spacing + text.get_height() // 2)
+    )
+
+    screen.blit(printer_img, image_rect)
     screen.blit(text, text_rect)
 
     pygame.display.flip()
 
-
 def affichage_image(path: str, screen: pygame.Surface):
     width,height = get_ecran_size(screen=screen)
-    # affichage de l'image
     screen.fill(BLACK)
     affichage = pygame.image.load(path).convert()
     screen.blit(pygame.transform.scale(affichage, (width, height)), (0, 0))
@@ -267,12 +265,10 @@ def settings(screen, params, font):
 
         toggle_rects.clear()
 
-        # ---------- TITLE ----------
         title = title_font.render("Paramètres", True, (255,255,255))
         title_rect = title.get_rect(center=(screen_width//2, 80))
         screen.blit(title, title_rect)
         
-        # ---------- SETTINGS ----------
         card_width = 700
         card_height = 70
 
@@ -308,7 +304,6 @@ def settings(screen, params, font):
 
             toggle_rects[key] = toggle
 
-        # ---------- BUTTON ----------
         draw_button(screen, validate_button, "VALIDER", font)
 
         pygame.display.flip()

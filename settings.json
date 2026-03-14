@@ -1,5 +1,5 @@
 {
     "CLES_USB": true,
-    "IMPRIMER": false,
+    "IMPRIMER": true,
     "QR_CODE": false
 }

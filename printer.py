@@ -10,7 +10,7 @@ import pygame
 from ui import  draw_print_screen
 
 
-def impression_photo(screen :pygame.Surface,font,path: str | Path, printer_name: str | None = None, timeout: int = 60) -> int:
+def impression_photo(screen :pygame.Surface,font,path: str | Path, printer_name: str | None = None, timeout: int = 120) -> int:
     """
     Envoie une image à l'imprimante via CUPS et attend la fin du job.
 
@@ -35,7 +35,6 @@ def impression_photo(screen :pygame.Surface,font,path: str | Path, printer_name:
     if not printers:
         raise RuntimeError("Aucune imprimante détectée")
 
-    # choisir imprimante
     if printer_name is None:
         printer_name = conn.getDefault()
 
@@ -50,7 +49,6 @@ def impression_photo(screen :pygame.Surface,font,path: str | Path, printer_name:
     print(f"Impression sur : {printer_name}")
     print(f"Fichier : {path}")
 
-    # options impression
     options = {
         "media": "Postcard.Fullbleed",
         "fit-to-page": "True",
@@ -68,7 +66,7 @@ def impression_photo(screen :pygame.Surface,font,path: str | Path, printer_name:
 
     print(f"Job envoyé : {job_id}")
     draw_print_screen(screen=screen,font_small=font)
-    # attendre la fin du job
+    
     start = time.time()
 
     while True:
@@ -80,7 +78,7 @@ def impression_photo(screen :pygame.Surface,font,path: str | Path, printer_name:
             break
 
         if time.time() - start > timeout:
-            raise TimeoutError("Timeout impression")
+            break
 
         time.sleep(2)
 
