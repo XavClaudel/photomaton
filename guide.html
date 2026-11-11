@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photomaton - Guide d'Utilisation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #212121;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        pre code {
+            padding: 0;
+            background-color: transparent;
+        }
+        blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 15px;
+            color: #555;
+            margin-left: 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Photomaton - Guide d'Utilisation</h1>
+
+    <p>Bienvenue dans le guide d'utilisation de votre application Photomaton ! Ce document vous explique comment lancer, configurer et utiliser toutes les fonctionnalités de l'application.</p>
+
+    <h2>1. Lancement de l'Application</h2>
+
+    <p>Pour démarrer, exécutez simplement le script <code>launch.sh</code> dans votre terminal :</p>
+    <pre><code>./launch.sh</code></pre>
+
+    <p>Ce script intelligent s'occupe de tout :</p>
+    <ul>
+        <li>Il vérifie si les dépendances logicielles sont installées et les installe si nécessaire (nécessite une connexion Internet au premier lancement).</li>
+        <li>Si aucune connexion réseau n'est détectée, il peut <strong>créer son propre point d'accès Wi-Fi</strong> pour que les invités puissent télécharger leurs photos.</li>
+    </ul>
+
+    <blockquote>
+        <p><strong>Note :</strong> La création du point d'accès peut nécessiter des droits d'administrateur. Si cela échoue, essayez de lancer le script avec <code>sudo ./launch.sh</code>.</p>
+    </blockquote>
+
+    <h2>2. Écran de Configuration</h2>
+
+    <p>Au lancement, un écran de configuration vous permet d'activer ou de désactiver les fonctionnalités principales pour votre événement.</p>
+
+    <ul>
+        <li><strong>Activer l'impression :</strong> Permet d'imprimer les photos. Assurez-vous qu'une imprimante est connectée et configurée.</li>
+        <li><strong>Activer la sauvegarde sur USB :</strong> Permet de sauvegarder les photos sur une clé USB. Une clé doit être branchée pour activer cette option.</li>
+        <li><strong>Activer le QR Code de téléchargement :</strong> Affiche un QR code sur l'écran de prévisualisation pour permettre aux invités de télécharger leur photo sur leur smartphone.</li>
+        <li><strong>Personnalisation des photos :</strong> Active le panneau d'effets (Noir & Blanc, Sépia, etc.) sur l'écran de prévisualisation.</li>
+        <li><strong>Marquage photo :</strong> Permet d'incruster un texte personnalisé sur chaque photo.
+            <ul>
+                <li><strong>Champ de texte :</strong> Saisissez le texte à afficher (ex: "Mariage de A & B").</li>
+                <li><strong>Options :</strong> Vous pouvez choisir la police, la taille, la couleur et la position du texte.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <p>Une fois vos options choisies, cliquez sur <strong>"Lancer le Photomaton"</strong>.</p>
+
+    <h2>3. Utilisation du Photomaton</h2>
+
+    <h3>Écran d'Accueil</h3>
+    <p>Vous avez deux choix :</p>
+    <ul>
+        <li><strong>Prendre une photo :</strong> Lance le décompte pour une seule photo.</li>
+        <li><strong>Mode Montage :</strong> Ouvre une fenêtre pour choisir entre un format "Grille 2x2" ou "Bande 1x4", puis lance la séquence de 4 photos.</li>
+        <li><strong>Galerie :</strong> Ouvre un écran pour voir et ré-imprimer les photos déjà prises.</li>
+    </ul>
+
+    <h3>Décompte</h3>
+    <p>Un décompte s'affiche à l'écran avant chaque prise, laissant le temps aux invités de prendre la pose.</p>
+
+    <h2>4. Écran de Prévisualisation</h2>
+
+    <p>Après la prise de vue, la photo s'affiche. Vous pouvez alors :</p>
+    <ul>
+        <li><strong>Reprendre :</strong> Annule la photo actuelle et retourne à l'écran d'accueil.</li>
+        <li><strong>Imprimer :</strong> Envoie la photo (avec ses effets) à l'imprimante. Le nombre d'impressions par photo peut être limité.</li>
+        <li><strong>Effets :</strong> Ouvre un panneau latéral pour personnaliser votre photo.</li>
+    </ul>
+
+    <h3>Panneau d'Effets</h3>
+    <p>Cliquez sur le bouton "Effets" pour faire apparaître le panneau. Les effets sont cumulables !</p>
+    <ul>
+        <li><strong>Noir & Blanc / Sépia :</strong> Filtres de couleur classiques.</li>
+        <li><strong>Vignette :</strong> Assombrit les bords de la photo.</li>
+        <li><strong>Netteté / Flou :</strong> Accentue ou adoucit les détails.</li>
+        <li><strong>Contour :</strong> Donne un effet "dessin".</li>
+        <li><strong>Cadre :</strong> Applique une image de cadre (voir personnalisation).</li>
+        <li><strong>Reset :</strong> Annule tous les effets appliqués.</li>
+    </ul>
+
+    <h3>Téléchargement par QR Code</h3>
+    <p>Si l'option est activée, un QR code apparaît en bas à droite. Pour l'utiliser :</p>
+    <ol>
+        <li>Connectez votre smartphone au même réseau Wi-Fi que le photomaton.</li>
+        <li>Scannez le code avec l'appareil photo de votre téléphone.</li>
+        <li>Un lien apparaîtra pour télécharger l'image.</li>
+    </ol>
+
+    <h2>5. Fonctionnalités Avancées</h2>
+
+    <h3>Mode Point d'Accès (Hotspot)</h3>
+    <p>Si le photomaton est lancé dans un lieu sans Wi-Fi, il créera son propre réseau.</p>
+    <ul>
+        <li><strong>Nom du réseau (SSID) par défaut :</strong> <code>photomaton</code></li>
+        <li><strong>Mot de passe par défaut :</strong> <code>photobooth</code> (peut être laissé vide pour un réseau ouvert)</li>
+    </ul>
+    <p>Les invités n'ont qu'à se connecter à ce réseau pour utiliser le QR code.</p>
+
+    <h3>Bouton Physique (pour Raspberry Pi)</h3>
+    <p>Si vous utilisez un Raspberry Pi, vous pouvez brancher un bouton physique sur les broches GPIO pour déclencher la prise de photo sans toucher à l'écran.</p>
+
+    <h2>6. Personnalisation (pour l'organisateur)</h2>
+
+    <p>Vous pouvez personnaliser certains aspects en modifiant des fichiers avant de lancer l'application.</p>
+    <ul>
+        <li><strong>Fichier de configuration (<code>config.json</code>) :</strong> Ce fichier centralise de nombreuses options. Vous pouvez y changer le texte par défaut du marquage, le nom/mot de passe du hotspot, etc.</li>
+        <li><strong>Cadre personnalisé :</strong> Remplacez l'image <code>assets/overlay.png</code> par votre propre fichier PNG (avec transparence) pour avoir un cadre personnalisé.</li>
+        <li><strong>Polices personnalisées :</strong> Ajoutez des fichiers de police (<code>.ttf</code>) dans le dossier <code>assets/</code> pour qu'ils apparaissent dans les options de marquage.</li>
+    </ul>
+
+</body>
+</html>

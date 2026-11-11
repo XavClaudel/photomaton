@@ -1,2 +1,0 @@
-# photomaton
-photomaton sur python

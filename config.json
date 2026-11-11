@@ -1,0 +1,26 @@
+{
+    "countdown_seconds": 5,
+    "max_prints_per_photo": 5,
+    "printer_name": null,
+    "print_fit_method": "pad",
+    "printing_options": {
+        "media": "Postcard",
+        "print-quality": "5",
+        "StpBorderless": "True"
+    },
+    "enable_printing": true,
+    "enable_usb_save": true,
+    "enable_web_server": false,
+    "web_server_ip": "10.42.0.1",
+    "hotspot_ssid": "photomaton",
+    "hotspot_password": "",
+    "enable_personalization": false,
+    "overlay_path": "assets/overlay.png",
+    "enable_text_marking": true,
+    "marking_text": "",
+    "marking_text_color": "Blanc",
+    "marking_text_position": "En bas \u00e0 droite",
+    "marking_text_font": "Lobster-Regular.ttf",
+    "marking_text_size": 80,
+    "gpio_button_pin": 2
+}
