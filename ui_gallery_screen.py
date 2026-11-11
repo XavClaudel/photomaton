@@ -20,10 +20,13 @@ class GalleryScreen(tk.Frame):
         self.image_paths: list[str] = []
         self.current_index: int = 0
         self.tk_photo: ImageTk.PhotoImage | None = None
+        self._last_width: int = 0
+        self._last_height: int = 0
 
         # --- Widgets de la galerie ---
         self.photo_label = tk.Label(self, bg=self.app.COLOR_BG)
         self.photo_label.pack(fill=tk.BOTH, expand=True, pady=10)
+        self.photo_label.bind("<Configure>", self.on_resize)
 
         self.info_label = tk.Label(self, text="", font=("Arial", 16), bg=self.app.COLOR_BG, fg=self.app.COLOR_TEXT)
         self.info_label.pack(pady=5)
@@ -96,18 +99,33 @@ class GalleryScreen(tk.Frame):
             self.tk_photo = None
             return
 
+        display_w = self.photo_label.winfo_width()
+        display_h = self.photo_label.winfo_height()
+        if display_w <= 1 or display_h <= 1:
+            self.after(20, self.show_current_photo)
+            return
+
         self.info_label.config(text=f"Photo {self.current_index + 1} sur {len(self.image_paths)}")
         
         path = self.image_paths[self.current_index]
         try:
             img = Image.open(path)
-            img.thumbnail((self.photo_label.winfo_width(), self.photo_label.winfo_height()), Image.LANCZOS)
+            img.thumbnail((display_w, display_h), Image.LANCZOS)
             self.tk_photo = ImageTk.PhotoImage(img)
             self.photo_label.config(image=self.tk_photo)
         except Exception as e:
             self.info_label.config(text=f"Erreur au chargement de l'image: {e}")
             self.photo_label.config(image=None)
             self.tk_photo = None
+
+    def on_resize(self, event):
+        """Gère le redimensionnement de l'image lors du changement de taille du widget."""
+        if event.width > 1 and event.height > 1:
+            if event.width != self._last_width or event.height != self._last_height:
+                self._last_width = event.width
+                self._last_height = event.height
+                if self.image_paths:
+                    self.show_current_photo()
 
     def next_photo(self):
         """Passe à la photo suivante."""
