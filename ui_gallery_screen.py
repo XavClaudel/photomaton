@@ -22,17 +22,26 @@ class GalleryScreen(tk.Frame):
         self.tk_photo: ImageTk.PhotoImage | None = None
         self._last_width: int = 0
         self._last_height: int = 0
+        self._resize_timer: str | None = None
+        self.fixed_display_w: int = 0
+        self.fixed_display_h: int = 0
+
+        # Configuration de la grille principale de GalleryScreen
+        self.rowconfigure(0, weight=1) # photo_label prend tout l'espace vertical disponible
+        self.rowconfigure(1, weight=0) # info_label
+        self.rowconfigure(2, weight=0) # nav_frame
+        self.columnconfigure(0, weight=1)
 
         # --- Widgets de la galerie ---
         self.photo_label = tk.Label(self, bg=self.app.COLOR_BG)
-        self.photo_label.pack(fill=tk.BOTH, expand=True, pady=10)
-        self.photo_label.bind("<Configure>", self.on_resize)
+        self.photo_label.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        self.bind("<Configure>", self.on_resize)
 
         self.info_label = tk.Label(self, text="", font=("Arial", 16), bg=self.app.COLOR_BG, fg=self.app.COLOR_TEXT)
-        self.info_label.pack(pady=5)
+        self.info_label.grid(row=1, column=0, sticky="ew", pady=5)
 
-        self.nav_frame = tk.Frame(self, bg="black")
-        self.nav_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+        self.nav_frame = tk.Frame(self, bg=self.app.COLOR_BG)
+        self.nav_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
 
         self.create_widgets()
         self.after(100, self.load_photos) # Délai pour permettre à la fenêtre de se dessiner
@@ -99,18 +108,24 @@ class GalleryScreen(tk.Frame):
             self.tk_photo = None
             return
 
-        display_w = self.photo_label.winfo_width()
-        display_h = self.photo_label.winfo_height()
-        if display_w <= 1 or display_h <= 1:
+        container_w = self.winfo_width()
+        container_h = self.winfo_height()
+        if container_w <= 1 or container_h <= 1:
             self.after(20, self.show_current_photo)
             return
+
+        if self.fixed_display_w <= 0 or self.fixed_display_h <= 0:
+            info_h = self.info_label.winfo_height() or 40
+            nav_h = self.nav_frame.winfo_height() or 80
+            self.fixed_display_w = max(100, container_w - 40)
+            self.fixed_display_h = max(100, container_h - info_h - nav_h - 40)
 
         self.info_label.config(text=f"Photo {self.current_index + 1} sur {len(self.image_paths)}")
         
         path = self.image_paths[self.current_index]
         try:
             img = Image.open(path)
-            img.thumbnail((display_w, display_h), Image.LANCZOS)
+            img.thumbnail((self.fixed_display_w, self.fixed_display_h), Image.LANCZOS)
             self.tk_photo = ImageTk.PhotoImage(img)
             self.photo_label.config(image=self.tk_photo)
         except Exception as e:
@@ -121,11 +136,21 @@ class GalleryScreen(tk.Frame):
     def on_resize(self, event):
         """Gère le redimensionnement de l'image lors du changement de taille du widget."""
         if event.width > 1 and event.height > 1:
-            if event.width != self._last_width or event.height != self._last_height:
+            if abs(event.width - self._last_width) > 15 or abs(event.height - self._last_height) > 15:
                 self._last_width = event.width
                 self._last_height = event.height
+                info_h = self.info_label.winfo_height() or 40
+                nav_h = self.nav_frame.winfo_height() or 80
+                self.fixed_display_w = max(100, event.width - 40)
+                self.fixed_display_h = max(100, event.height - info_h - nav_h - 40)
+
                 if self.image_paths:
-                    self.show_current_photo()
+                    if self._resize_timer is not None:
+                        try:
+                            self.after_cancel(self._resize_timer)
+                        except Exception:
+                            pass
+                    self._resize_timer = self.after(150, self.show_current_photo)
 
     def next_photo(self):
         """Passe à la photo suivante."""

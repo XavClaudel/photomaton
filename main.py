@@ -93,7 +93,7 @@ class PhotomatonApp:
         self.photo_label: tk.Label = tk.Label(self.main_frame, bg=self.COLOR_BG)
         self.photo_label.pack(fill=tk.BOTH, expand=True)
 
-        self.button_frame: tk.Frame = tk.Frame(self.main_frame, bg="black")
+        self.button_frame: tk.Frame = tk.Frame(self.main_frame, bg=self.COLOR_BG)
         self.button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
 
         close_button: tk.Button = tk.Button(master, text="X", command=master.destroy, 
@@ -278,6 +278,7 @@ class PhotomatonApp:
     def show_home_screen(self) -> None:
         """Affiche l'écran d'accueil avec le flux de la caméra."""
         self.clear_buttons()
+        self.button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
         self.qr_code_label.place_forget()
         self.side_effects_panel.place_forget()
         self.is_camera_active = True
@@ -312,9 +313,24 @@ class PhotomatonApp:
         # --- Fonctions de rappel pour le menu ---
         def close_menu(event=None):
             """Fonction utilitaire pour fermer proprement le menu."""
+            if event and hasattr(event, 'x_root') and self.montage_menu_window and self.montage_menu_window.winfo_exists():
+                try:
+                    x, y = event.x_root, event.y_root
+                    wx = self.montage_menu_window.winfo_rootx()
+                    wy = self.montage_menu_window.winfo_rooty()
+                    ww = self.montage_menu_window.winfo_width()
+                    wh = self.montage_menu_window.winfo_height()
+                    if wx <= x <= wx + ww and wy <= y <= wy + wh:
+                        return # Clic à l'intérieur du menu, on ne ferme pas
+                except Exception:
+                    pass
             if self.montage_menu_window and self.montage_menu_window.winfo_exists():
                 self.montage_menu_window.destroy()
                 self.montage_menu_window = None
+            try:
+                self.master.unbind("<Button-1>")
+            except Exception:
+                pass
 
         def on_choice(format_choice: str):
             """Gère le choix d'un format et lance le montage."""
@@ -342,8 +358,8 @@ class PhotomatonApp:
         self.apply_hover_effect(strip_btn, self.COLOR_PRIMARY, self.COLOR_BG_LIGHT)
 
         # --- Liaisons d'événements pour fermer le menu ---
-        self.montage_menu_window.bind("<FocusOut>", close_menu) # Se ferme si on clique ailleurs
-        self.montage_menu_window.bind("<Escape>", close_menu)   # Se ferme avec la touche Echap
+        self.master.bind("<Button-1>", close_menu, add="+")
+        self.montage_menu_window.bind("<Escape>", lambda e: close_menu())
 
     def animate_montage_menu(self, current_y: int, target_y: int, x: int):
         """Anime le déplacement vertical du menu de montage."""
@@ -361,6 +377,7 @@ class PhotomatonApp:
         """Affiche l'écran de la galerie de photos."""
         # On ne détruit pas tout, on cache juste les éléments de l'accueil
         self.clear_buttons()
+        self.button_frame.pack_forget()
         self.photo_label.pack_forget()
         self.is_camera_active = False
         gallery = GalleryScreen(self.main_frame, self) # La galerie est maintenant un enfant de main_frame
