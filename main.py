@@ -26,6 +26,10 @@ class PhotomatonApp:
     Gère l'interface graphique, le flux de l'application et l'orchestration des différents modules.
     """
     def __init__(self, master: tk.Tk) -> None:
+        # --- Initialisation de base ---
+        self.master: tk.Tk = master
+        self.icon_cache: dict[str, ImageTk.PhotoImage] = {}
+        
         # --- Modern UI Color Palette ---
         self.COLOR_BG = "#2C3E50"
         self.COLOR_BG_LIGHT = "#34495E"
@@ -57,7 +61,6 @@ class PhotomatonApp:
         self.HOVER_GREEN_ALT = "#48C9B0"
         self.HOVER_BG_LIGHT = "#415B76"
 
-        self.master: tk.Tk = master
         master.title("Photomaton")
         self.is_fullscreen = True
         master.geometry("1024x768")
@@ -129,7 +132,7 @@ class PhotomatonApp:
         self.side_effects_panel: tk.Frame
         self.config_frame: tk.Frame
         self.tk_qr_code: ImageTk.PhotoImage
-        self.icon_cache: dict[str, ImageTk.PhotoImage] = {}
+        self.tk_qr_code: ImageTk.PhotoImage # Redondant mais sans danger
 
         self.show_config_screen() # Affiche l'écran de configuration au lieu de l'accueil
 
