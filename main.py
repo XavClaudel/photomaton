@@ -101,6 +101,13 @@ class PhotomatonApp:
                                  activebackground="#9B0000", relief="flat")
         close_button.place(relx=1.0, rely=0.0, anchor='ne', x=-10, y=10)
 
+        gear_icon = self.load_icon("gear_icon.png", (28, 28))
+        self.config_button = tk.Button(master, image=gear_icon, command=self.show_config_screen,
+                                       bg=self.COLOR_BG_LIGHT, fg="white",
+                                       activebackground=self.HOVER_BG_LIGHT, relief="flat", padx=2, pady=2)
+        self.config_button.image = gear_icon
+        self.config_button.place_forget()
+
         # Déclaration des widgets pour l'autocomplétion et l'analyse statique
         self.take_photo_button: tk.Button
         self.montage_button: tk.Button
@@ -249,6 +256,7 @@ class PhotomatonApp:
     def show_config_screen(self) -> None:
         """Affiche l'écran de configuration."""
         self.clear_buttons()
+        self.config_button.place_forget()
         self.config_frame = ConfigScreen(self.main_frame, self, self.start_from_config)
         self.config_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -281,6 +289,7 @@ class PhotomatonApp:
         self.button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
         self.qr_code_label.place_forget()
         self.side_effects_panel.place_forget()
+        self.config_button.place(relx=0.0, rely=0.0, anchor='nw', x=10, y=10)
         self.is_camera_active = True
         self.take_photo_button.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=10, pady=5)
         self.montage_button.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=5)
@@ -377,6 +386,7 @@ class PhotomatonApp:
         """Affiche l'écran de la galerie de photos."""
         # On ne détruit pas tout, on cache juste les éléments de l'accueil
         self.clear_buttons()
+        self.config_button.place_forget()
         self.button_frame.pack_forget()
         self.photo_label.pack_forget()
         self.is_camera_active = False
@@ -454,6 +464,7 @@ class PhotomatonApp:
         """Gère le décompte avant de prendre la photo."""
         self.is_camera_active = False
         self.clear_buttons()
+        self.config_button.place_forget()
         self.capture_single_photo()
 
     def do_countdown(self, message: str = "") -> None:
@@ -516,6 +527,7 @@ class PhotomatonApp:
         """Capture une série de 4 photos pour le montage avec le format spécifié."""
         self.is_camera_active = False
         self.clear_buttons()
+        self.config_button.place_forget()
 
         if not montage_format:
             self.show_home_screen()
@@ -579,6 +591,7 @@ class PhotomatonApp:
         """Affiche l'écran de prévisualisation avec les options."""
         self.is_camera_active = False
         self.clear_buttons()
+        self.config_button.place_forget()
         self.print_count = 0
         self.side_effects_panel.place_forget()
         
