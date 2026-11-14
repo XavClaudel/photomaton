@@ -107,7 +107,8 @@ class PhotomatonApp:
         gear_icon = self.load_icon("gear_icon.png", (40, 40))
         self.config_button = tk.Button(self.main_frame, image=gear_icon, command=self.show_config_screen,
                                        bg=self.COLOR_BG_LIGHT, fg="white",
-                                       activebackground=self.HOVER_BG_LIGHT, relief="flat", padx=5, pady=5)
+                                       activebackground=self.HOVER_BG_LIGHT, relief="flat", padx=5, pady=5,
+                                       bd=0, highlightthickness=0)
         self.config_button.image = gear_icon
         self.config_button.place_forget()
 
@@ -260,6 +261,8 @@ class PhotomatonApp:
         """Affiche l'écran de configuration."""
         self.clear_buttons()
         self.config_button.place_forget()
+        self.photo_label.pack_forget()
+        self.button_frame.pack_forget()
         self.config_frame = ConfigScreen(self.main_frame, self, self.start_from_config)
         self.config_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -290,6 +293,7 @@ class PhotomatonApp:
         """Affiche l'écran d'accueil avec le flux de la caméra."""
         self.clear_buttons()
         self.button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+        self.photo_label.pack(fill=tk.BOTH, expand=True)
         self.qr_code_label.place_forget()
         self.side_effects_panel.place_forget()
         self.is_camera_active = True
@@ -312,6 +316,542 @@ class PhotomatonApp:
         if not os.path.exists(daily_dir):
             os.makedirs(daily_dir)
         return daily_dir
+
+    def create_montage_menu_window(self):
+        """Crée et configure la fenêtre (Toplevel) personnalisée pour le menu de montage."""
+        if self.montage_menu_window and self.montage_menu_window.winfo_exists():
+            self.montage_menu_window.destroy()
+
+        self.montage_menu_window = tk.Toplevel(self.master)
+        self.montage_menu_window.geometry("+9999+9999") # On la crée hors de l'écran pour éviter le flash
+        self.montage_menu_window.overrideredirect(True)
+        self.montage_menu_window.configure(bg=self.COLOR_BG_LIGHT, relief="solid", bd=1)
+        self.montage_menu_window.transient(self.master)
+
+        # --- Fonctions de rappel pour le menu ---
+        def close_menu(event=None):
+            """Fonction utilitaire pour fermer proprement le menu."""
+            if event and hasattr(event, 'x_root') and self.montage_menu_window and self.montage_menu_window.winfo_exists():
+                try:
+                    x, y = event.x_root, event.y_root
+                    wx = self.montage_menu_window.winfo_rootx()
+                    wy = self.montage_menu_window.winfo_rooty()
+                    ww = self.montage_menu_window.winfo_width()
+                    wh = self.montage_menu_window.winfo_height()
+                    if wx <= x <= wx + ww and wy <= y <= wy + wh:
+                        return # Clic à l'intérieur du menu, on ne ferme pas
+                except Exception:
+                    pass
+            if self.montage_menu_window and self.montage_menu_window.winfo_exists():
+                self.montage_menu_window.destroy()
+                self.montage_menu_window = None
+            try:
+                self.master.unbind("<Button-1>")
+            except Exception:
+                pass
+
+        def on_choice(format_choice: str):
+            """Gère le choix d'un format et lance le montage."""
+            close_menu()
+            self.start_photo_strip(format_choice)
+
+        menu_icon_size = (32, 32)
+        btn_font = ("Arial", 16)
+        btn_kwargs = {
+            "font": btn_font, "bg": self.COLOR_BG_LIGHT, "fg": self.COLOR_TEXT, "activebackground": self.ACTIVE_PRIMARY, "compound": "left",
+            "activeforeground": "white",
+            "relief": "flat", "pady": 10, "padx": 20, "anchor": "w"
+        }
+
+        icon_grid = self.load_icon("grid.png", menu_icon_size)
+        grid_btn = tk.Button(self.montage_menu_window, text=" Grille 2x2", image=icon_grid, command=lambda: on_choice('Grille 2x2'), **btn_kwargs)
+        grid_btn.image = icon_grid # Garde une référence
+        grid_btn.pack(fill="x", expand=True)
+        self.apply_hover_effect(grid_btn, self.COLOR_PRIMARY, self.COLOR_BG_LIGHT)
+        
+        icon_strip = self.load_icon("filmstrip.png", menu_icon_size)
+        strip_btn = tk.Button(self.montage_menu_window, text=" Bande 1x4", image=icon_strip, command=lambda: on_choice('Bande 1x4'), **btn_kwargs)
+        strip_btn.image = icon_strip # Garde une référence
+        strip_btn.pack(fill="x", expand=True)
+        self.apply_hover_effect(strip_btn, self.COLOR_PRIMARY, self.COLOR_BG_LIGHT)
+
+        # --- Liaisons d'événements pour fermer le menu ---
+        self.master.bind("<Button-1>", close_menu, add="+")
+        self.montage_menu_window.bind("<Escape>", lambda e: close_menu())
+
+    def animate_montage_menu(self, current_y: int, target_y: int, x: int):
+        """Anime le déplacement vertical du menu de montage."""
+        if not self.montage_menu_window or not self.montage_menu_window.winfo_exists():
+            return
+        step = 15
+        new_y = current_y - step
+        if new_y <= target_y:
+            self.montage_menu_window.geometry(f"+{x}+{target_y}")
+        else:
+            self.montage_menu_window.geometry(f"+{x}+{new_y}")
+            self.master.after(10, lambda: self.animate_montage_menu(new_y, target_y, x))
+
+    def show_gallery_screen(self):
+        """Affiche l'écran de la galerie de photos."""
+        # On ne détruit pas tout, on cache juste les éléments de l'accueil
+        self.clear_buttons()
+        self.config_button.place_forget()
+        self.button_frame.pack_forget()
+        self.photo_label.pack_forget()
+        self.is_camera_active = False
+        gallery = GalleryScreen(self.main_frame, self) # La galerie est maintenant un enfant de main_frame
+        gallery.pack(fill=tk.BOTH, expand=True)
+
+    def apply_hover_effect(self, button: tk.Button, hover_color: str, original_color: str):
+        """Applique un effet de survol à un bouton."""
+        button.bind("<Enter>", lambda e: button.config(bg=hover_color))
+        button.bind("<Leave>", lambda e: button.config(bg=original_color))
+
+    def load_icon(self, name: str, size: tuple[int, int]) -> ImageTk.PhotoImage | None:
+        """Charge une icône PNG depuis le dossier assets, la redimensionne et la met en cache."""
+        cache_key = f"{name}_{size[0]}x{size[1]}"
+        if cache_key in self.icon_cache:
+            return self.icon_cache[cache_key]
+        
+        path = os.path.join("assets", name)
+        if not os.path.exists(path):
+            print(f"AVERTISSEMENT: Icône introuvable. Le fichier '{name}' n'a pas été trouvé dans le dossier '{os.path.abspath('assets')}'.")
+            return None
+
+        try:
+            img = Image.open(path).convert("RGBA").resize(size, Image.LANCZOS)
+            tk_img = ImageTk.PhotoImage(img, master=self.master)
+            self.icon_cache[cache_key] = tk_img
+            return tk_img
+        except Exception as e:
+            print(f"Erreur lors du chargement de l'icône '{name}': {e}")
+            return None
+
+
+    def update_camera_feed(self) -> None:
+        """Met à jour l'image de la caméra en continu."""
+        if not self.is_camera_active or not camera_manager.IS_WEBCAM_AVAILABLE:
+            return
+
+        frame = camera_manager.get_frame()
+        if frame is not None:
+            display_h = self.photo_label.winfo_height()
+            display_w = self.photo_label.winfo_width()
+            
+            # Si le widget n'est pas encore dessiné, sa taille est 1. On attend un peu.
+            if display_w <= 1 or display_h <= 1:
+                self.master.after(20, self.update_camera_feed)
+                return
+
+            h, w, _ = frame.shape
+            scale = min(display_w / w, display_h / h)
+            new_w, new_h = int(w * scale), int(h * scale)
+            # La vérification ci-dessus garantit que new_w et new_h ne seront pas nuls.
+            
+            img = Image.fromarray(frame)
+            img = img.resize((new_w, new_h), Image.LANCZOS)
+
+            self.tk_photo = ImageTk.PhotoImage(image=img)
+            self.photo_label.config(image=self.tk_photo, text="")
+        
+        self.master.after(20, self.update_camera_feed)
+
+    def show_no_webcam_message(self):
+        """Affiche un message statique si aucune webcam n'est disponible."""
+        self.photo_label.config(image=None, text="Pas de retour vidéo.\nL'appareil photo est prêt.", 
+                                font=("Arial", 30, "bold"), 
+                                bg=self.COLOR_BG, fg=self.COLOR_TEXT,
+                                compound="center")
+        self.tk_photo = None
+        
+        icon = self.load_icon("camera.png", (200, 200))
+        if icon:
+            self.photo_label.config(image=icon)
+            self.tk_photo = icon # Garder une référence
+
+    def countdown_and_capture(self) -> None:
+        """Gère le décompte avant de prendre la photo."""
+        self.is_camera_active = False
+        self.clear_buttons()
+        self.config_button.place_forget()
+        self.capture_single_photo()
+
+    def do_countdown(self, message: str = "") -> None:
+        """Effectue un décompte visuel."""
+        # Efface l'arrière-plan pour ne pas voir la dernière image de la caméra pendant le décompte
+        self.photo_label.config(image=None, text="")
+        self.tk_photo = None # Libère la référence à l'ancienne image
+
+        # Affiche le label de décompte au centre de la zone photo
+        self.countdown_label.place(in_=self.photo_label, anchor="center", relx=.5, rely=.5)
+
+        if message:
+            self.countdown_label.config(text=message, font=("Arial", 60, "bold"))
+            self.master.update()
+            time.sleep(2)
+
+        self.countdown_label.config(font=("Arial", 120, "bold"))
+        for i in range(self.config.get('countdown_seconds', 5), 0, -1):
+            self.countdown_label.config(text=str(i))
+            self.master.update()
+            time.sleep(1)
+        
+        self.countdown_label.config(text="")
+        self.master.update()
+        time.sleep(0.2) # Petite pause pour simuler un flash
+        self.countdown_label.place_forget()
+
+    def capture_single_photo(self) -> None:
+        """Capture une seule photo."""
+        self.do_countdown()
+        self.capture_photo()
+
+    def show_montage_menu(self) -> None:
+        """Affiche un menu personnalisé avec une animation pour choisir le format du montage."""
+        # Si la fenêtre existe déjà, on la détruit et on s'arrête là (comportement de bascule).
+        if self.montage_menu_window and self.montage_menu_window.winfo_exists():
+            self.montage_menu_window.destroy()
+            self.montage_menu_window = None
+            return
+
+        self.create_montage_menu_window()
+        self.montage_menu_window.update_idletasks()
+        
+        menu_width = self.montage_menu_window.winfo_reqwidth()
+        menu_height = self.montage_menu_window.winfo_reqheight()
+
+        btn_x = self.montage_button.winfo_rootx()
+        btn_y = self.montage_button.winfo_rooty()
+        btn_width = self.montage_button.winfo_width()
+
+        popup_x = btn_x + (btn_width - menu_width) // 2
+        final_y = btn_y - menu_height - 5
+        start_y = btn_y
+
+        self.montage_menu_window.geometry(f"+{popup_x}+{start_y}")
+        self.animate_montage_menu(start_y, final_y, popup_x)
+        self.montage_menu_window.focus_set()
+
+    def start_photo_strip(self, montage_format: str) -> None:
+        """Capture une série de 4 photos pour le montage avec le format spécifié."""
+        self.is_camera_active = False
+        self.clear_buttons()
+        self.config_button.place_forget()
+
+        if not montage_format:
+            self.show_home_screen()
+            return
+
+        save_dir = self.get_daily_photo_dir()
+        self.photo_strip_paths = []
+        for i in range(4):
+            self.do_countdown(f"Photo {i+1} sur 4")
+            photo_path = camera_manager.take_picture(save_dir)
+            if photo_path:
+                self.photo_strip_paths.append(photo_path)
+            else:
+                self.show_notification(f"La photo {i+1} a échoué. Montage annulé.", 'error')
+                self.show_home_screen()
+                return
+        
+        # Crée le montage à partir des 4 photos capturées.
+        self.current_photo_path = image_processor.create_photo_strip(
+            self.photo_strip_paths, output_folder=save_dir, strip_format=montage_format
+        )
+        if self.current_photo_path:
+            self.original_photo = Image.open(self.current_photo_path)
+            self.process_and_display_photo()
+        else:
+            self.show_notification("La création du montage a échoué.", 'error')
+            self.show_home_screen()
+
+    def capture_photo(self) -> None:
+        """Capture une photo, la sauvegarde automatiquement sur USB si activé, et l'affiche."""
+        save_dir = self.get_daily_photo_dir()
+        self.current_photo_path = camera_manager.take_picture(save_dir)
+        if self.current_photo_path:
+            if self.config.get('enable_usb_save', False):
+                print("Option de sauvegarde USB activée, tentative de sauvegarde automatique...")
+                # La sauvegarde est silencieuse pour ne pas interrompre l'utilisateur
+                self.save_to_usb(show_success_message=False)
+            self.original_photo = Image.open(self.current_photo_path)
+            self.process_and_display_photo()
+        else:
+            self.show_notification("Impossible de prendre la photo. Veuillez réessayer.", 'error')
+            self.show_home_screen()
+
+    def process_and_display_photo(self) -> None:
+        """Applique les modifications permanentes (marquage) et affiche l'aperçu."""
+        if self.config.get('enable_text_marking', False) and self.config.get('marking_text', ''):
+            print("Application du texte de marquage...")
+            self.original_photo = image_processor.add_text_to_image(
+                self.original_photo,
+                self.config['marking_text'],
+                position=self.config.get('marking_text_position'),
+                color=self.config.get('marking_text_color'),
+                font_name=self.config.get('marking_text_font'),
+                font_size=self.config.get('marking_text_size')
+            )
+            # Écrase le fichier original sur le disque avec la version incluant le texte
+            self.original_photo.convert("RGB").save(self.current_photo_path)
+        self.show_preview_screen()
+
+    def show_preview_screen(self) -> None:
+        """Affiche l'écran de prévisualisation avec les options."""
+        self.is_camera_active = False
+        self.clear_buttons()
+        self.config_button.place_forget()
+        self.print_count = 0
+        self.side_effects_panel.place_forget()
+        
+        if self.original_photo is None:
+            self.show_notification("Aucune photo à afficher.", 'error')
+            return self.show_home_screen()
+        self.processed_photo = self.original_photo.copy()
+
+        self.display_image(self.processed_photo)
+
+        self.retake_button.pack(side=tk.LEFT, fill=tk.BOTH, padx=10, pady=5)
+
+        if self.config.get('enable_personalization', False):
+            self.effects_toggle_button.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=10)
+
+        if self.config.get('enable_printing', False):
+            self.print_button.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(0, 10), pady=5)
+
+        if self.config.get('enable_web_server', False):
+            self.show_qr_code()
+
+    def display_image(self, img_object: Image.Image) -> None:
+        """Affiche une image dans le label principal."""
+        try:
+            container_w = self.main_frame.winfo_width() or self.master.winfo_width() or 800
+            container_h = self.main_frame.winfo_height() or self.master.winfo_height() or 600
+            btn_h = self.button_frame.winfo_height() or 80
+
+            display_w = max(100, container_w - 40)
+            display_h = max(100, container_h - btn_h - 40)
+
+            img = img_object.copy() # On travaille sur une copie pour ne pas altérer l'original
+            img.thumbnail((display_w, display_h), Image.LANCZOS)
+
+            self.tk_processed_photo = ImageTk.PhotoImage(img)
+            self.photo_label.config(image=self.tk_processed_photo, text="")
+        except Exception as e:
+            self.show_notification(f"Impossible d'afficher l'image: {e}", 'error')
+            self.show_home_screen()
+
+    def toggle_effects_panel(self) -> None:
+        """Affiche ou cache le panneau latéral des effets."""
+        if self.side_effects_panel.winfo_viewable():
+            self.side_effects_panel.place_forget()
+        else:
+            overlay_path = self.config.get('overlay_path', 'assets/overlay.png')
+            if not os.path.exists(overlay_path):
+                self.overlay_button.pack_forget()
+            else:
+                self.overlay_button.pack(fill='x', expand=True, before=self.reset_button)
+            self.side_effects_panel.place(in_=self.photo_label, anchor='w', relx=0.0, rely=0.5, x=20)
+
+    def _apply_effect(self, effect_function, error_message: str = "Impossible d'appliquer l'effet"):
+        """Méthode générique pour appliquer un effet à l'image en cours de traitement."""
+        if self.processed_photo:
+            try:
+                self.processed_photo = effect_function(self.processed_photo)
+                self.display_image(self.processed_photo)
+            except Exception as e:
+                self.show_notification(f"{error_message} : {e}", 'error')
+
+    def apply_bw_filter(self) -> None:
+        """Applique un filtre noir et blanc."""
+        self._apply_effect(lambda img: ImageOps.grayscale(img).convert("RGB"), "Filtre N&B échoué")
+
+    def apply_sepia_filter(self) -> None:
+        """Applique un filtre sépia."""
+        def effect(img: Image.Image) -> Image.Image:
+            grayscale = ImageOps.grayscale(img)
+            return ImageOps.colorize(grayscale, black="#4A2E04", white="#F3EAD3")
+        self._apply_effect(effect, "Filtre sépia échoué")
+
+    def apply_overlay(self) -> None:
+        """Applique une image de cadre/logo en superposition."""
+        def effect(img: Image.Image) -> Image.Image:
+            overlay_path = self.config.get('overlay_path', 'assets/overlay.png')
+            processed_rgba = img.copy().convert("RGBA")
+            overlay = Image.open(overlay_path).convert("RGBA")
+            overlay = overlay.resize(processed_rgba.size, Image.LANCZOS)
+            processed_rgba.paste(overlay, (0, 0), overlay)
+            return processed_rgba
+        self._apply_effect(effect, "Application du cadre échouée")
+
+    def apply_vignette_effect(self) -> None:
+        """Applique un effet de vignettage."""
+        def effect(img: Image.Image) -> Image.Image:
+            img_rgb = img.copy().convert("RGB")
+            vignette_layer = Image.new('RGB', img_rgb.size, 'black')
+            mask = Image.new('L', img_rgb.size, 0)
+            draw = ImageDraw.Draw(mask)
+            x0, y0 = img_rgb.width * 0.1, img_rgb.height * 0.1
+            x1, y1 = img_rgb.width * 0.9, img_rgb.height * 0.9
+            draw.ellipse((x0, y0, x1, y1), fill=255)
+            mask = mask.filter(ImageFilter.GaussianBlur(min(img_rgb.size) / 5))
+            return Image.composite(img_rgb, vignette_layer, mask)
+        self._apply_effect(effect, "Effet vignette échoué")
+
+    def apply_sharpen_effect(self) -> None:
+        """Applique un filtre de netteté."""
+        self._apply_effect(lambda img: img.filter(ImageFilter.SHARPEN), "Filtre netteté échoué")
+
+    def apply_blur_effect(self) -> None:
+        """Applique un filtre de flou gaussien."""
+        self._apply_effect(lambda img: img.filter(ImageFilter.GaussianBlur(radius=2)), "Filtre flou échoué")
+
+    def apply_contour_effect(self) -> None:
+        """Applique un filtre de contour."""
+        self._apply_effect(lambda img: img.filter(ImageFilter.CONTOUR), "Filtre contour échoué")
+
+    def reset_effects(self) -> None:
+        """Annule tous les effets et revient à la photo originale."""
+        self.processed_photo = self.original_photo.copy()
+        self.display_image(self.processed_photo)
+
+    def print_photo(self) -> None:
+        """Gère la logique d'impression."""
+        # Sauvegarde la photo avec les effets actuels dans un fichier temporaire pour l'impression
+        try:
+            base, ext = os.path.splitext(self.current_photo_path)
+            photo_to_print_path = f"{base}_print_{int(time.time())}{ext}"
+            self.processed_photo.convert("RGB").save(photo_to_print_path)
+            print(f"Préparation pour impression : {photo_to_print_path}")
+        except Exception as e:
+            self.show_notification(f"Impossible de préparer l'image pour l'impression: {e}", 'error')
+            return
+
+        max_prints = self.config.get('max_prints_per_photo', 1)
+        if self.print_count >= max_prints:
+            self.show_notification(f"Nombre maximum d'impressions atteint ({max_prints}).", 'info')
+            return
+
+        fit_method = self.config.get('print_fit_method', 'pad')
+        photo_to_print = image_processor.prepare_for_print(
+            photo_to_print_path,
+            target_ratio=3.0/2.0,
+            method=fit_method
+        )
+
+        printer_name = self.config.get('printer_name')
+        printing_options = self.config.get('printing_options')
+        success = printer_manager.print_image(photo_to_print, printer_name, printing_options)
+        if success:
+            self.print_count += 1
+            self.show_notification(f"Impression lancée ! Restant : {max_prints - self.print_count}", 'success')
+        else:
+            self.show_notification("L'impression a échoué.", 'error')
+
+    def save_to_usb(self, show_success_message: bool = True) -> None:
+        """Sauvegarde la photo sur une clé USB. Peut être silencieux."""
+        is_temp_file: bool = False
+        photo_to_save_path: str
+        if show_success_message:
+            # Appel MANUEL depuis l'écran de prévisualisation : on sauvegarde l'image avec effets.
+            try:
+                base, ext = os.path.splitext(self.current_photo_path)
+                photo_to_save_path = f"{base}_usb_{int(time.time())}{ext}"
+                self.processed_photo.convert("RGB").save(photo_to_save_path)
+                print(f"Préparation pour sauvegarde USB (avec effets) : {photo_to_save_path}")
+                is_temp_file = True
+            except Exception as e:
+                self.show_notification(f"Impossible de préparer l'image pour la sauvegarde: {e}", 'error')
+                return
+        else:
+            # Appel AUTOMATIQUE juste après la capture : on sauvegarde le fichier original.
+            photo_to_save_path = self.current_photo_path
+            print(f"Préparation pour sauvegarde USB (auto) : {photo_to_save_path}")
+
+        usb_path = usb_manager.find_usb_drive()
+        if not usb_path:
+            if show_success_message: # On n'affiche la notification que si l'action est manuelle
+                self.show_notification("Aucune clé USB n'a été trouvée.", 'warning')
+            else:
+                print("Sauvegarde automatique sur USB : clé non trouvée.")
+            return
+
+        try:
+            usb_manager.save_photo_to_usb(photo_to_save_path, usb_path)
+            if show_success_message:
+                self.show_notification("Photo sauvegardée sur la clé USB.", 'success')
+            if is_temp_file:
+                os.remove(photo_to_save_path)
+        except Exception as e:
+            if show_success_message:
+                self.show_notification(f"Impossible de sauvegarder sur la clé USB: {e}", 'error')
+            else:
+                print(f"Erreur lors de la sauvegarde automatique sur USB : {e}")
+
+    def show_qr_code(self) -> None:
+        """Génère et affiche le QR code pour le téléchargement."""
+        try:
+            forced_ip = self.config.get('web_server_ip')
+            ip = forced_ip if forced_ip else web_server_manager.get_local_ip()
+
+            # Si l'IP est 127.0.0.1, il n'y a pas de réseau externe, le QR code est inutile.
+            if ip == '127.0.0.1':
+                print("INFO: Aucune connexion réseau externe détectée. Le QR code ne sera pas affiché.")
+                self.qr_code_label.place_forget()
+                return
+
+            # Construit une URL relative au dossier 'photos' qui est servi par le serveur web
+            relative_path = os.path.relpath(self.current_photo_path, 'photos').replace(os.sep, '/')
+            url = f"http://{ip}:8000/{relative_path}"
+            
+            qr_img = qrcode.make(url)
+            qr_img = qr_img.resize((150, 150), Image.LANCZOS)
+            
+            self.tk_qr_code = ImageTk.PhotoImage(qr_img)
+            self.qr_code_label.config(image=self.tk_qr_code)
+            
+            self.qr_code_label.place(in_=self.photo_label, anchor="se", relx=1.0, rely=1.0, x=-10, y=-10)
+
+        except Exception as e:
+            print(f"Erreur lors de la génération du QR code: {e}")
+
+    def show_notification(self, message: str, msg_type: str = 'info', duration: int = 3000):
+        """Affiche une notification non-bloquante en haut de l'écran."""
+        if self.notification_job:
+            self.master.after_cancel(self.notification_job)
+
+        color_map = {
+            'info': self.COLOR_PRIMARY,
+            'success': self.COLOR_SUCCESS,
+            'warning': self.COLOR_WARNING,
+            'error': self.COLOR_DANGER
+        }
+        self.notification_label.config(text=message, bg=color_map.get(msg_type, self.COLOR_BG_LIGHT))
+        
+        # Place la notification en haut, centrée horizontalement
+        self.notification_label.place(in_=self.main_frame, anchor='n', relx=0.5, rely=0.0, relwidth=1.0)
+        self.notification_label.lift() # Assure que la notification est au-dessus des autres widgets
+        
+        self.notification_job = self.master.after(duration, self.hide_notification)
+
+    def hide_notification(self):
+        """Cache la notification."""
+        if self.notification_label.winfo_ismapped():
+            self.notification_label.place_forget()
+        self.notification_job = None
+
+
+if __name__ == "__main__":
+    if not camera_manager.init_camera():
+        messagebox.showerror("Erreur Caméra", "Aucune caméra (Webcam ou Reflex) n'a été détectée. L'application va se fermer.")
+        exit()
+
+    root: tk.Tk = tk.Tk()
+    app: PhotomatonApp = PhotomatonApp(root)
+    root.mainloop()
+
+    camera_manager.release_camera()
+    gpio_manager.cleanup()
 
     def create_montage_menu_window(self):
         """Crée et configure la fenêtre (Toplevel) personnalisée pour le menu de montage."""
