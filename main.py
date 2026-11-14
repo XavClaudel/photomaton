@@ -603,8 +603,13 @@ class PhotomatonApp:
     def display_image(self, img_object: Image.Image) -> None:
         """Affiche une image dans le label principal."""
         try:
-            display_h = self.photo_label.winfo_height()
-            display_w = self.photo_label.winfo_width()
+            container_w = self.main_frame.winfo_width() or self.master.winfo_width() or 800
+            container_h = self.main_frame.winfo_height() or self.master.winfo_height() or 600
+            btn_h = self.button_frame.winfo_height() or 80
+
+            display_w = max(100, container_w - 40)
+            display_h = max(100, container_h - btn_h - 40)
+
             img = img_object.copy() # On travaille sur une copie pour ne pas altérer l'original
             img.thumbnail((display_w, display_h), Image.LANCZOS)
 
