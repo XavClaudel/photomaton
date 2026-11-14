@@ -101,10 +101,10 @@ class PhotomatonApp:
                                  activebackground="#9B0000", relief="flat")
         close_button.place(relx=1.0, rely=0.0, anchor='ne', x=-10, y=10)
 
-        gear_icon = self.load_icon("gear_icon.png", (28, 28))
-        self.config_button = tk.Button(master, image=gear_icon, command=self.show_config_screen,
+        gear_icon = self.load_icon("gear_icon.png", (40, 40))
+        self.config_button = tk.Button(self.main_frame, image=gear_icon, command=self.show_config_screen,
                                        bg=self.COLOR_BG_LIGHT, fg="white",
-                                       activebackground=self.HOVER_BG_LIGHT, relief="flat", padx=2, pady=2)
+                                       activebackground=self.HOVER_BG_LIGHT, relief="flat", padx=5, pady=5)
         self.config_button.image = gear_icon
         self.config_button.place_forget()
 
@@ -289,12 +289,14 @@ class PhotomatonApp:
         self.button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
         self.qr_code_label.place_forget()
         self.side_effects_panel.place_forget()
-        self.config_button.place(relx=0.0, rely=0.0, anchor='nw', x=10, y=10)
         self.is_camera_active = True
         self.take_photo_button.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=10, pady=5)
         self.montage_button.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=5)
         self.gallery_button.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=10, pady=5)
         
+        self.config_button.place(in_=self.main_frame, relx=0.0, rely=0.0, anchor='nw', x=20, y=20)
+        self.config_button.lift()
+
         if camera_manager.IS_WEBCAM_AVAILABLE:
             self.update_camera_feed()
         else:
