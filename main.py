@@ -108,7 +108,7 @@ class PhotomatonApp:
         self.config_button = tk.Button(self.main_frame, image=gear_icon, command=self.show_config_screen,
                                        bg=self.COLOR_BG_LIGHT, fg="white",
                                        activebackground=self.HOVER_BG_LIGHT, relief="flat", padx=5, pady=5,
-                                       bd=0, highlightthickness=0)
+                                       bd=0, highlightthickness=0, takefocus=0)
         self.config_button.image = gear_icon
         self.config_button.place_forget()
 
@@ -135,6 +135,7 @@ class PhotomatonApp:
         self.tk_qr_code: ImageTk.PhotoImage
         self.tk_qr_code: ImageTk.PhotoImage # Redondant mais sans danger
 
+        self.create_widgets()
         self.show_config_screen() # Affiche l'écran de configuration au lieu de l'accueil
 
     def toggle_fullscreen(self, event=None) -> None:
@@ -278,10 +279,11 @@ class PhotomatonApp:
             button_pin = self.config.get('gpio_button_pin', 2)
             gpio_manager.setup_button(button_pin, self.gpio_trigger_photo)
 
+        # Ré-initialiser la caméra pour s'assurer que le retour vidéo fonctionne en revenant de la configuration
+        camera_manager.init_camera()
+
         # On détruit l'écran de configuration pour laisser place à l'interface principale
         self.config_frame.destroy()
-        # Le photo_label créé dans __init__ est maintenant visible.
-        self.create_widgets()
         self.show_home_screen()
 
     def clear_buttons(self) -> None:
