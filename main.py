@@ -279,9 +279,9 @@ class PhotomatonApp:
             button_pin = self.config.get('gpio_button_pin', 2)
             gpio_manager.setup_button(button_pin, self.gpio_trigger_photo)
 
-        # Ré-initialiser la caméra avec la source choisie
-        lv_source = self.config.get('live_view_source', 'webcam')
-        camera_manager.init_camera(source=lv_source)
+        # Ré-initialiser la caméra : détection automatique de la source du retour vidéo
+        # (live view du reflex si disponible, sinon webcam)
+        camera_manager.init_camera()
 
         # On détruit l'écran de configuration pour laisser place à l'interface principale
         self.config_frame.destroy()
@@ -852,11 +852,9 @@ class PhotomatonApp:
 
 
 if __name__ == "__main__":
-    # Charger la config avant d'initialiser la caméra
-    initial_config = config_manager.load_config()
-    lv_source = initial_config.get('live_view_source', 'webcam')
-    
-    if not camera_manager.init_camera(source=lv_source):
+    # Détection du matériel uniquement : le live view du reflex sera lancé
+    # au clic sur « Lancer le photomaton ».
+    if not camera_manager.init_camera(start_live_view=False):
         messagebox.showerror("Erreur Caméra", "Aucune caméra (Webcam ou Reflex) n'a été détectée. L'application va se fermer.")
         exit()
 
@@ -1398,11 +1396,9 @@ if __name__ == "__main__":
 
 
 if __name__ == "__main__":
-    # Charger la config avant d'initialiser la caméra
-    initial_config = config_manager.load_config()
-    lv_source = initial_config.get('live_view_source', 'webcam')
-    
-    if not camera_manager.init_camera(source=lv_source):
+    # Détection du matériel uniquement : le live view du reflex sera lancé
+    # au clic sur « Lancer le photomaton ».
+    if not camera_manager.init_camera(start_live_view=False):
         messagebox.showerror("Erreur Caméra", "Aucune caméra (Webcam ou Reflex) n'a été détectée. L'application va se fermer.")
         exit()
 
