@@ -8,7 +8,7 @@ print(f"Python : {sys.executable}")
 try:
     import gpiozero
     from gpiozero import Button, Device
-    print(f"gpiozero {gpiozero.__version__} importé.")
+    print(f"gpiozero importé ({gpiozero.__file__}).")
     button = Button(pin, pull_up=True, bounce_time=0.1)
     print(f"Pin factory : {type(Device.pin_factory).__name__}")
     print(f"OK : bouton configuré sur GPIO{pin}. Appuie sur le bouton (Ctrl+C pour quitter)...")
