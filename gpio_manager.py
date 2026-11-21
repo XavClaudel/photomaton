@@ -25,6 +25,16 @@ def setup_button(pin: int, callback: Callable[[int], None]) -> None:
     if not IS_RASPBERRY_PI:
         return
 
+    # Libère le bouton d'une configuration précédente (ex: retour à l'écran de configuration
+    # puis nouveau clic sur « Lancer le photomaton »), sinon la broche est déjà réservée.
+    if button_device is not None:
+        try:
+            button_device.close()
+        except Exception:
+            pass
+        button_device = None
+        GPIO_SETUP_SUCCESS = False
+
     # Configure la broche en entrée avec une résistance de pull-up interne.
     # Le bouton doit être connecté entre la broche et la masse (GND).
     try:
@@ -42,7 +52,8 @@ def setup_button(pin: int, callback: Callable[[int], None]) -> None:
         print(f"Bouton configuré sur la broche GPIO {pin} avec gpiozero. Prêt à déclencher la capture.")
         GPIO_SETUP_SUCCESS = True
     except Exception as e:
-        print(f"Erreur d'accès aux GPIO (droits insuffisants ?): {e}. Le bouton physique GPIO est désactivé.")
+        print(f"Erreur d'accès aux GPIO sur la broche {pin} ({type(e).__name__}): {e}. "
+              f"Le bouton physique GPIO est désactivé.")
 
 def cleanup() -> None:
     """Nettoie les configurations GPIO à la fermeture."""
