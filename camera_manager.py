@@ -4,13 +4,23 @@ import os
 import numpy as np
 import subprocess
 import shutil
+import threading
+import signal
 
 # Variable globale pour la capture vidéo, accessible par toutes les fonctions du module.
 cap: cv2.VideoCapture | None = None
+# Variable globale pour le processus gphoto2 en mode capture movie (live view)
+dslr_process: subprocess.Popen | None = None
 # Variable globale pour savoir si un appareil reflex est connecté et utilisable
 IS_DSLR_CONNECTED: bool = False
 # Variable globale pour savoir si une webcam est disponible
 IS_WEBCAM_AVAILABLE: bool = False
+# Source actuelle du live view ('webcam' ou 'dslr')
+LIVE_VIEW_SOURCE: str = 'webcam'
+# Thread de lecture du flux live view DSLR et dernière image décodée
+_dslr_reader_thread: threading.Thread | None = None
+_dslr_latest_frame: np.ndarray | None = None
+_dslr_frame_lock = threading.Lock()
 
 def free_usb_device():
     """Tente de tuer les processus gvfs qui bloquent l'accès à la caméra USB."""
@@ -42,28 +52,48 @@ def check_dslr() -> bool:
         print(f"INFO: Erreur lors de la détection du DSLR avec gphoto2: {e}")
         return False
 
-def init_camera(camera_index: int = 0) -> bool:
+def init_camera(camera_index: int = 0, source: str = 'webcam') -> bool:
     """
     Initialise les caméras. Vérifie le reflex (DSLR) et la webcam.
     Retourne True si au moins un des deux est disponible.
     """
-    global cap, IS_DSLR_CONNECTED, IS_WEBCAM_AVAILABLE
+    global cap, IS_DSLR_CONNECTED, IS_WEBCAM_AVAILABLE, LIVE_VIEW_SOURCE
     
+    LIVE_VIEW_SOURCE = source
+    # 0. Libérer les ressources d'une éventuelle initialisation précédente
+    stop_dslr_live_view()
+    if cap is not None:
+        cap.release()
+        cap = None
+    IS_WEBCAM_AVAILABLE = False
+
     # 1. Vérifier la présence d'un appareil reflex (DSLR)
     IS_DSLR_CONNECTED = check_dslr()
 
-    # 2. Initialiser la webcam pour le retour vidéo (live preview)
-    cap = cv2.VideoCapture(camera_index)
-    if cap.isOpened():
-        IS_WEBCAM_AVAILABLE = True
-        # Configure la résolution de la caméra pour une meilleure qualité.
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-        print(f"INFO: Webcam initialisée pour le retour vidéo (index {camera_index}).")
-    else:
-        IS_WEBCAM_AVAILABLE = False
-        print(f"INFO: Aucune webcam trouvée à l'index {camera_index}.")
-        
+    # 2. Initialiser la source de live view demandée
+    if LIVE_VIEW_SOURCE == 'webcam':
+        cap = cv2.VideoCapture(camera_index)
+        if cap.isOpened():
+            IS_WEBCAM_AVAILABLE = True
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+            print(f"INFO: Webcam initialisée pour le retour vidéo (index {camera_index}).")
+        else:
+            IS_WEBCAM_AVAILABLE = False
+            print(f"INFO: Aucune webcam trouvée à l'index {camera_index}.")
+    elif LIVE_VIEW_SOURCE == 'dslr':
+        if IS_DSLR_CONNECTED:
+            if start_dslr_live_view():
+                print("INFO: Live View DSLR démarré.")
+            else:
+                print("ERREUR: Impossible de démarrer le Live View DSLR. Repli sur la webcam...")
+                LIVE_VIEW_SOURCE = 'webcam'
+                return init_camera(camera_index, 'webcam')
+        else:
+            print("AVERTISSEMENT: DSLR demandé pour le Live View mais non détecté. Repli sur la webcam...")
+            LIVE_VIEW_SOURCE = 'webcam'
+            return init_camera(camera_index, 'webcam')
+
     if IS_DSLR_CONNECTED:
         print("INFO: L'appareil reflex sera utilisé pour la capture finale en haute qualité.")
     
@@ -75,16 +105,122 @@ def init_camera(camera_index: int = 0) -> bool:
         
     return True
 
+def start_dslr_live_view() -> bool:
+    """
+    Démarre le live view du reflex : gphoto2 envoie un flux MJPEG sur stdout,
+    un thread de fond le lit en continu et ne conserve que la dernière image.
+    """
+    global dslr_process, _dslr_reader_thread, _dslr_latest_frame
+    stop_dslr_live_view()
+    free_usb_device()
+    try:
+        cmd = ["gphoto2", "--capture-movie", "--stdout"]
+        dslr_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=0)
+    except Exception as e:
+        print(f"Erreur lors du démarrage du Live View DSLR: {e}")
+        dslr_process = None
+        return False
+
+    with _dslr_frame_lock:
+        _dslr_latest_frame = None
+    _dslr_reader_thread = threading.Thread(target=_dslr_reader_loop, args=(dslr_process,), daemon=True)
+    _dslr_reader_thread.start()
+
+    # On attend la première image pour valider que le live view fonctionne réellement.
+    deadline = time.time() + 5
+    while time.time() < deadline:
+        with _dslr_frame_lock:
+            if _dslr_latest_frame is not None:
+                return True
+        if dslr_process.poll() is not None:
+            break
+        time.sleep(0.05)
+    print("ERREUR: Le reflex n'a envoyé aucune image de live view.")
+    stop_dslr_live_view()
+    return False
+
+def _dslr_reader_loop(process: subprocess.Popen) -> None:
+    """Thread de fond : découpe le flux MJPEG en images JPEG et décode la plus récente."""
+    global _dslr_latest_frame
+    buffer = bytearray()
+    stream = process.stdout
+    while process.poll() is None:
+        try:
+            chunk = stream.read(65536)
+        except Exception:
+            break
+        if not chunk:
+            break
+        buffer += chunk
+
+        # Extrait la dernière image JPEG complète du buffer (on ignore les plus anciennes
+        # pour ne jamais accumuler de retard).
+        last_jpeg = None
+        while True:
+            start = buffer.find(b'\xff\xd8')
+            if start == -1:
+                # Pas de début d'image : on ne garde qu'un octet au cas où 0xFF serait coupé
+                del buffer[:-1]
+                break
+            end = buffer.find(b'\xff\xd9', start + 2)
+            if end == -1:
+                del buffer[:start]
+                break
+            last_jpeg = bytes(buffer[start:end + 2])
+            del buffer[:end + 2]
+
+        if last_jpeg is not None:
+            frame = cv2.imdecode(np.frombuffer(last_jpeg, dtype=np.uint8), cv2.IMREAD_COLOR)
+            if frame is not None:
+                rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                with _dslr_frame_lock:
+                    _dslr_latest_frame = rgb
+
+        # Sécurité : évite une croissance infinie si le flux est corrompu
+        if len(buffer) > 10 * 1024 * 1024:
+            buffer.clear()
+
+def stop_dslr_live_view():
+    """Arrête le processus de live view DSLR s'il est en cours."""
+    global dslr_process, _dslr_reader_thread, _dslr_latest_frame
+    if dslr_process:
+        # SIGINT permet à gphoto2 de refermer proprement le miroir/viewfinder
+        try:
+            dslr_process.send_signal(signal.SIGINT)
+            dslr_process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            dslr_process.kill()
+            dslr_process.wait()
+        except Exception:
+            pass
+        dslr_process = None
+    if _dslr_reader_thread:
+        _dslr_reader_thread.join(timeout=1)
+        _dslr_reader_thread = None
+    with _dslr_frame_lock:
+        _dslr_latest_frame = None
+
+def is_live_view_available() -> bool:
+    """Indique si un retour vidéo (webcam ou reflex) est disponible."""
+    if LIVE_VIEW_SOURCE == 'dslr':
+        return dslr_process is not None and dslr_process.poll() is None
+    return IS_WEBCAM_AVAILABLE
+
 def get_frame() -> np.ndarray | None:
-    """Capture une seule image (frame) depuis le flux de la WEBCAM pour le retour vidéo."""
-    if IS_WEBCAM_AVAILABLE and cap and cap.isOpened():
-        ret, frame = cap.read()
-        if ret:
-            # OpenCV lit les images en format BGR (Bleu, Vert, Rouge).
-            # On le convertit en RGB (Rouge, Vert, Bleu) pour une compatibilité
-            # avec Pillow et Tkinter.
-            return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    """Capture une seule image (frame) depuis le flux sélectionné (WEBCAM ou DSLR)."""
+    if LIVE_VIEW_SOURCE == 'webcam':
+        if IS_WEBCAM_AVAILABLE and cap and cap.isOpened():
+            ret, frame = cap.read()
+            if ret:
+                return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    elif LIVE_VIEW_SOURCE == 'dslr':
+        return get_dslr_frame()
     return None
+
+def get_dslr_frame() -> np.ndarray | None:
+    """Retourne (sans bloquer) la dernière image reçue du live view reflex."""
+    with _dslr_frame_lock:
+        return _dslr_latest_frame
 
 def take_picture(save_folder: str = 'photos') -> str | None:
     """
@@ -102,7 +238,15 @@ def take_picture(save_folder: str = 'photos') -> str | None:
 def take_picture_with_dslr(save_folder: str) -> str | None:
     """Prend une photo avec l'appareil reflex via gphoto2."""
     print("Déclenchement de la capture avec l'appareil reflex...")
+    
+    # IMPORTANT: Si le live view est actif, il faut l'arrêter car il monopolise l'USB
+    was_live_view_active = (LIVE_VIEW_SOURCE == 'dslr')
+    if was_live_view_active:
+        stop_dslr_live_view()
+        time.sleep(1) # Laisser un peu de temps à la caméra pour changer de mode
+
     free_usb_device()
+    filepath = None
     try:
         timestamp: str = time.strftime("%Y%m%d-%H%M%S")
         filename: str = f"photomaton_dslr_{timestamp}.jpg"
@@ -113,16 +257,25 @@ def take_picture_with_dslr(save_folder: str) -> str | None:
         
         if os.path.exists(filepath):
             print(f"Photo (reflex) sauvegardée : {filepath}")
-            return filepath
         else:
             print("Erreur: gphoto2 a terminé sans erreur mais le fichier est introuvable.")
-            return None
+            filepath = None
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-        print(f"Erreur lors de la capture avec gphoto2: {e}\nSortie d'erreur:\n{e.stderr}")
-        return None
+        print(f"Erreur lors de la capture avec gphoto2: {e}")
+        if hasattr(e, 'stderr'):
+            print(f"Sortie d'erreur:\n{e.stderr}")
+        filepath = None
+    
+    # Redémarrer le live view si nécessaire
+    if was_live_view_active:
+        if not start_dslr_live_view():
+            print("AVERTISSEMENT: Impossible de relancer le Live View DSLR après la capture.")
+    
+    return filepath
 
 def take_picture_with_webcam(save_folder: str = 'photos') -> str | None:
     """Prend une photo avec la webcam, la sauvegarde et retourne son chemin."""
+    # On utilise get_frame qui gère déjà la source
     frame = get_frame()
     if frame is not None:
         frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR) # Reconvertir en BGR pour la sauvegarde
@@ -139,9 +292,11 @@ def take_picture_with_webcam(save_folder: str = 'photos') -> str | None:
     return None
 
 def release_camera() -> None:
-    """Libère la ressource de la webcam proprement à la fin du programme."""
-    global IS_WEBCAM_AVAILABLE
+    """Libère toutes les ressources caméras proprement."""
+    global IS_WEBCAM_AVAILABLE, cap
+    stop_dslr_live_view()
     if cap:
         cap.release()
         print("Webcam libérée.")
+    cap = None
     IS_WEBCAM_AVAILABLE = False

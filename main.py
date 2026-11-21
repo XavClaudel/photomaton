@@ -279,8 +279,9 @@ class PhotomatonApp:
             button_pin = self.config.get('gpio_button_pin', 2)
             gpio_manager.setup_button(button_pin, self.gpio_trigger_photo)
 
-        # Ré-initialiser la caméra pour s'assurer que le retour vidéo fonctionne en revenant de la configuration
-        camera_manager.init_camera()
+        # Ré-initialiser la caméra avec la source choisie
+        lv_source = self.config.get('live_view_source', 'webcam')
+        camera_manager.init_camera(source=lv_source)
 
         # On détruit l'écran de configuration pour laisser place à l'interface principale
         self.config_frame.destroy()
@@ -306,7 +307,8 @@ class PhotomatonApp:
         self.config_button.place(in_=self.main_frame, relx=0.0, rely=0.0, anchor='nw', x=20, y=20)
         self.config_button.lift()
 
-        if camera_manager.IS_WEBCAM_AVAILABLE:
+        if camera_manager.is_live_view_available():
+            self._last_feed_frame = None  # force le redessin de l'image au retour à l'accueil
             self.update_camera_feed()
         else:
             self.show_no_webcam_message()
@@ -432,10 +434,16 @@ class PhotomatonApp:
 
     def update_camera_feed(self) -> None:
         """Met à jour l'image de la caméra en continu."""
-        if not self.is_camera_active or not camera_manager.IS_WEBCAM_AVAILABLE:
+        if not self.is_camera_active:
             return
 
         frame = camera_manager.get_frame()
+        # Le live view reflex renvoie la même image tant qu'aucune nouvelle n'est arrivée :
+        # inutile de la redessiner.
+        if frame is not None and frame is getattr(self, '_last_feed_frame', None):
+            self.master.after(20, self.update_camera_feed)
+            return
+        self._last_feed_frame = frame
         if frame is not None:
             display_h = self.photo_label.winfo_height()
             display_w = self.photo_label.winfo_width()
@@ -844,7 +852,11 @@ class PhotomatonApp:
 
 
 if __name__ == "__main__":
-    if not camera_manager.init_camera():
+    # Charger la config avant d'initialiser la caméra
+    initial_config = config_manager.load_config()
+    lv_source = initial_config.get('live_view_source', 'webcam')
+    
+    if not camera_manager.init_camera(source=lv_source):
         messagebox.showerror("Erreur Caméra", "Aucune caméra (Webcam ou Reflex) n'a été détectée. L'application va se fermer.")
         exit()
 
@@ -968,10 +980,16 @@ if __name__ == "__main__":
 
     def update_camera_feed(self) -> None:
         """Met à jour l'image de la caméra en continu."""
-        if not self.is_camera_active or not camera_manager.IS_WEBCAM_AVAILABLE:
+        if not self.is_camera_active:
             return
 
         frame = camera_manager.get_frame()
+        # Le live view reflex renvoie la même image tant qu'aucune nouvelle n'est arrivée :
+        # inutile de la redessiner.
+        if frame is not None and frame is getattr(self, '_last_feed_frame', None):
+            self.master.after(20, self.update_camera_feed)
+            return
+        self._last_feed_frame = frame
         if frame is not None:
             display_h = self.photo_label.winfo_height()
             display_w = self.photo_label.winfo_width()
@@ -1380,7 +1398,11 @@ if __name__ == "__main__":
 
 
 if __name__ == "__main__":
-    if not camera_manager.init_camera():
+    # Charger la config avant d'initialiser la caméra
+    initial_config = config_manager.load_config()
+    lv_source = initial_config.get('live_view_source', 'webcam')
+    
+    if not camera_manager.init_camera(source=lv_source):
         messagebox.showerror("Erreur Caméra", "Aucune caméra (Webcam ou Reflex) n'a été détectée. L'application va se fermer.")
         exit()
 
