@@ -15,7 +15,7 @@ dslr_process: subprocess.Popen | None = None
 IS_DSLR_CONNECTED: bool = False
 # Variable globale pour savoir si une webcam est disponible
 IS_WEBCAM_AVAILABLE: bool = False
-# Source actuelle du live view ('webcam' ou 'dslr')
+# Source actuelle du live view, détectée automatiquement ('webcam' ou 'dslr')
 LIVE_VIEW_SOURCE: str = 'webcam'
 # Thread de lecture du flux live view DSLR et dernière image décodée
 _dslr_reader_thread: threading.Thread | None = None
@@ -52,25 +52,39 @@ def check_dslr() -> bool:
         print(f"INFO: Erreur lors de la détection du DSLR avec gphoto2: {e}")
         return False
 
-def init_camera(camera_index: int = 0, source: str = 'webcam') -> bool:
+def init_camera(camera_index: int = 0, start_live_view: bool = True) -> bool:
     """
-    Initialise les caméras. Vérifie le reflex (DSLR) et la webcam.
+    Initialise les caméras avec détection automatique de la source du retour vidéo :
+    - si un reflex est détecté et que son live view fonctionne, il est utilisé ;
+    - sinon, repli sur la webcam.
+    Le reflex (s'il est présent) reste utilisé pour la capture finale dans tous les cas.
+
+    Si start_live_view est False, on se contente de détecter le matériel (sans laisser
+    tourner le live view du reflex), par exemple au démarrage pendant l'écran de configuration.
     Retourne True si au moins un des deux est disponible.
     """
     global cap, IS_DSLR_CONNECTED, IS_WEBCAM_AVAILABLE, LIVE_VIEW_SOURCE
-    
-    LIVE_VIEW_SOURCE = source
+
     # 0. Libérer les ressources d'une éventuelle initialisation précédente
     stop_dslr_live_view()
     if cap is not None:
         cap.release()
         cap = None
     IS_WEBCAM_AVAILABLE = False
+    LIVE_VIEW_SOURCE = 'webcam'
 
     # 1. Vérifier la présence d'un appareil reflex (DSLR)
     IS_DSLR_CONNECTED = check_dslr()
 
-    # 2. Initialiser la source de live view demandée
+    # 2. Si un reflex est présent, on tente son live view en priorité
+    if IS_DSLR_CONNECTED and start_live_view:
+        if start_dslr_live_view():
+            LIVE_VIEW_SOURCE = 'dslr'
+            print("INFO: Retour vidéo assuré par le live view du reflex.")
+        else:
+            print("INFO: Live view du reflex indisponible, repli sur la webcam pour le retour vidéo.")
+
+    # 3. Sinon, webcam pour le retour vidéo
     if LIVE_VIEW_SOURCE == 'webcam':
         cap = cv2.VideoCapture(camera_index)
         if cap.isOpened():
@@ -79,30 +93,19 @@ def init_camera(camera_index: int = 0, source: str = 'webcam') -> bool:
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
             print(f"INFO: Webcam initialisée pour le retour vidéo (index {camera_index}).")
         else:
-            IS_WEBCAM_AVAILABLE = False
+            cap.release()
+            cap = None
             print(f"INFO: Aucune webcam trouvée à l'index {camera_index}.")
-    elif LIVE_VIEW_SOURCE == 'dslr':
-        if IS_DSLR_CONNECTED:
-            if start_dslr_live_view():
-                print("INFO: Live View DSLR démarré.")
-            else:
-                print("ERREUR: Impossible de démarrer le Live View DSLR. Repli sur la webcam...")
-                LIVE_VIEW_SOURCE = 'webcam'
-                return init_camera(camera_index, 'webcam')
-        else:
-            print("AVERTISSEMENT: DSLR demandé pour le Live View mais non détecté. Repli sur la webcam...")
-            LIVE_VIEW_SOURCE = 'webcam'
-            return init_camera(camera_index, 'webcam')
 
     if IS_DSLR_CONNECTED:
         print("INFO: L'appareil reflex sera utilisé pour la capture finale en haute qualité.")
-    
+
     if not IS_WEBCAM_AVAILABLE and not IS_DSLR_CONNECTED:
         print("ERREUR: Aucune webcam ni appareil reflex n'a été détecté. Impossible de continuer.")
         return False
     elif not IS_DSLR_CONNECTED:
         print("INFO: La webcam sera utilisée pour la capture finale.")
-        
+
     return True
 
 def start_dslr_live_view() -> bool:

@@ -92,29 +92,6 @@ class ConfigScreen(tk.Frame):
         list_frame = tk.Frame(content_frame, bg=self.app.COLOR_BG)
         list_frame.pack(fill='x', padx=40, pady=5)
 
-        # Ajout du choix de la source Live View
-        live_view_frame = tk.Frame(list_frame, bg=self.app.COLOR_BG)
-        live_view_frame.pack(fill='x', pady=(0, 10))
-        tk.Label(live_view_frame, text="Source du retour vidéo", font=("Arial", 16), bg=self.app.COLOR_BG, fg=self.app.COLOR_GREY, anchor="w").pack(side="left")
-        
-        self.live_view_var = tk.StringVar(value=self.config.get("live_view_source", "webcam"))
-        lv_options = {"Webcam": "webcam", "Reflex (DSLR)": "dslr"}
-        # On inverse le dictionnaire pour l'affichage
-        lv_display_options = list(lv_options.keys())
-        
-        # On crée un petit menu horizontal pour le choix
-        lv_buttons_frame = tk.Frame(live_view_frame, bg=self.app.COLOR_BG)
-        lv_buttons_frame.pack(side="right")
-        
-        self.lv_buttons = {}
-        for label, value in lv_options.items():
-            btn = tk.Button(lv_buttons_frame, text=label, font=("Arial", 12), relief="flat", 
-                            command=lambda v=value: self.select_live_view_source(v))
-            btn.pack(side="left", padx=5)
-            self.lv_buttons[value] = btn
-        
-        self.update_lv_buttons_appearance()
-
         for key, text in options.items():
             row_frame = tk.Frame(list_frame, bg=self.app.COLOR_BG)
             row_frame.pack(fill='x', pady=2) # Padding réduit pour gagner de la place verticale
@@ -208,25 +185,6 @@ class ConfigScreen(tk.Frame):
         except Exception as e:
             print(f"Erreur lors de la mise à jour de l'aperçu du marquage : {e}")
 
-    def select_live_view_source(self, source: str):
-        """Gère la sélection de la source du retour vidéo."""
-        self.live_view_var.set(source)
-        self.update_lv_buttons_appearance()
-
-    def update_lv_buttons_appearance(self):
-        """Met à jour l'apparence des boutons de source Live View pour indiquer la sélection."""
-        selected_source = self.live_view_var.get()
-        for source, button in self.lv_buttons.items():
-            is_selected = source == selected_source
-            original_color = self.app.COLOR_PRIMARY if is_selected else self.app.COLOR_BG_LIGHT
-            hover_color = self.app.HOVER_PRIMARY if is_selected else self.app.HOVER_BG_LIGHT
-            active_color = self.app.ACTIVE_PRIMARY if is_selected else self.app.COLOR_BG
-            button.config(
-                bg=original_color, fg="white" if is_selected else self.app.COLOR_TEXT,
-                activebackground=active_color, activeforeground="white"
-            )
-            self.app.apply_hover_effect(button, hover_color, original_color)
-
     def select_size(self, size: str, update_preview: bool = False):
         """Gère la sélection d'une taille de police."""
         self.marking_size_choice.set(size)
@@ -291,8 +249,6 @@ class ConfigScreen(tk.Frame):
         """Rassemble les valeurs de configuration de l'interface et appelle le callback pour démarrer l'application."""
         for key, var in self.config_vars.items():
             self.config[key] = var.get()
-        
-        self.config["live_view_source"] = self.live_view_var.get()
 
         if self.config.get("enable_text_marking"):
             self.config["marking_text"] = self.marking_text_var.get()

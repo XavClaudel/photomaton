@@ -24,7 +24,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "enable_personalization": True,
     "overlay_path": "assets/overlay.png",
     "enable_text_marking": False,
-    "live_view_source": "webcam", # 'webcam' ou 'dslr'
     "marking_text": "Mon Super Evénement",
     "marking_text_color": "Blanc",
     "marking_text_position": "En bas à droite",
