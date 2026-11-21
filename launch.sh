@@ -64,56 +64,39 @@ else
     else
         echo "Aucune connexion réseau local détectée. Tentative de création d'un point d'accès Wi-Fi..."
         
-        if command -v nmcli &> /dev/null; then
-            WIFI_IFACE=$(nmcli -t -f DEVICE,TYPE dev | grep ':wifi$' | cut -d':' -f1 | head -n 1)
-            if [ -n "$WIFI_IFACE" ]; then
-                echo "Interface Wi-Fi trouvée : $WIFI_IFACE"
-                
-                # Lecture de la configuration du hotspot depuis config.json avec Python, ou valeurs par défaut
-                if [ -f "config.json" ]; then
-                    # On lit les deux valeurs en une seule fois pour être plus efficace
-                    CONFIG_VALUES=$(python3 -c "import json; c=json.load(open('config.json')); print(c.get('hotspot_ssid', 'photomaton')); print(c.get('hotspot_password', 'photobooth'))")
-                    SSID=$(echo "$CONFIG_VALUES" | head -n 1)
-                    PASSWORD=$(echo "$CONFIG_VALUES" | tail -n 1)
-                else
-                    SSID="photomaton"
-                    PASSWORD="photobooth"
-                fi
+        # On délègue à network_manager.py (même logique que l'application) :
+        # - réutilise le profil hotspot existant s'il y en a un (l'imprimante retrouve le même réseau),
+        # - crée un vrai réseau OUVERT si le mot de passe est vide
+        #   ('nmcli dev wifi hotspot' sans mot de passe en génère un aléatoire),
+        # - enregistre l'IP du hotspot dans config.json pour le QR code.
+        python3 - <<'EOF'
+import json, os
+import network_manager
 
-                # On vérifie si un mot de passe a été fourni
-                if [ -n "$PASSWORD" ]; then
-                    echo "Création du hotspot sécurisé '$SSID'. Si cela échoue, essayez de lancer ce script avec 'sudo'."
-                    # Tente de créer le hotspot sécurisé. Peut nécessiter des droits admin.
-                    nmcli dev wifi hotspot ifname "$WIFI_IFACE" ssid "$SSID" password "$PASSWORD"
-                else
-                    echo "Création du hotspot ouvert '$SSID' (sans mot de passe). Si cela échoue, essayez de lancer ce script avec 'sudo'."
-                    # Tente de créer le hotspot ouvert.
-                    nmcli dev wifi hotspot ifname "$WIFI_IFACE" ssid "$SSID"
-                fi
+cfg_path = 'config.json'
+config = {}
+if os.path.exists(cfg_path):
+    with open(cfg_path) as f:
+        config = json.load(f)
+ssid = config.get('hotspot_ssid', 'photomaton')
+password = config.get('hotspot_password', 'photobooth')
 
-                if [ $? -eq 0 ]; then
-                    echo "Point d'accès '$SSID' créé avec succès."
-                    # Affiche le message approprié avec ou sans mot de passe
-                    [ -n "$PASSWORD" ] && echo "Connectez votre téléphone au Wi-Fi '$SSID' (mot de passe: '$PASSWORD')." || echo "Connectez votre téléphone au Wi-Fi ouvert '$SSID'."
-                    sleep 5 # Laisse le temps au réseau de s'établir
-
-                    # Récupère l'IP du point d'accès et la force dans la configuration
-                    # La sortie est du type "IP4.ADDRESS[1]:192.168.4.1/24", on doit extraire juste l'IP.
-                    HOTSPOT_IP=$(nmcli -t -f IP4.ADDRESS dev show "$WIFI_IFACE" | cut -d':' -f2 | cut -d'/' -f1 | head -n 1)
-                    if [ -n "$HOTSPOT_IP" ]; then
-                        echo "Le photomaton est accessible à l'adresse IP : $HOTSPOT_IP"
-                        python3 -c "import json, os; cfg_path='config.json'; data={} if not os.path.exists(cfg_path) else json.load(open(cfg_path)); data['web_server_ip']='$HOTSPOT_IP'; json.dump(data, open(cfg_path, 'w'), indent=4);"
-                        echo "L'adresse IP a été configurée pour le QR Code."
-                    fi
-                else
-                    echo "ERREUR: La création du point d'accès a échoué. Cela peut être dû à un manque de permissions (essayez avec 'sudo')."
-                fi
-            else
-                echo "AVERTISSEMENT: Aucune interface Wi-Fi n'a été trouvée pour créer un point d'accès."
-            fi
-        else
-            echo "AVERTISSEMENT: 'nmcli' (NetworkManager) n'est pas installé. Impossible de créer un point d'accès automatiquement."
-        fi
+success, ip, message = network_manager.start_hotspot(ssid, password)
+if not success:
+    print(f"ERREUR: {message}")
+    print("Cela peut être dû à un manque de permissions (essayez avec 'sudo').")
+else:
+    print(message)
+    if password:
+        print(f"Connectez votre téléphone au Wi-Fi '{ssid}' (mot de passe: '{password}').")
+    else:
+        print(f"Connectez votre téléphone au Wi-Fi ouvert '{ssid}'.")
+    if ip:
+        config['web_server_ip'] = ip
+        with open(cfg_path, 'w') as f:
+            json.dump(config, f, indent=4)
+        print(f"Le photomaton est accessible à l'adresse IP : {ip} (configurée pour le QR Code).")
+EOF
     fi
     source .venv/bin/activate
 fi

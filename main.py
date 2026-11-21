@@ -17,6 +17,7 @@ import usb_manager
 import web_server_manager
 import config_manager
 import gpio_manager
+import network_manager
 from ui_config_screen import ConfigScreen
 from ui_gallery_screen import GalleryScreen
 
@@ -270,6 +271,12 @@ class PhotomatonApp:
     def start_from_config(self, updated_config: dict[str, Any]) -> None:
         """Callback appelé par l'écran de configuration pour démarrer l'application."""
         self.config = updated_config
+
+        # L'imprimante Wi-Fi est connectée au hotspot du photomaton : si l'impression est
+        # activée, on bascule le Wi-Fi sur ce hotspot (en quittant le réseau actuel si besoin).
+        if self.config.get('enable_printing', False):
+            self.switch_to_hotspot()
+
         config_manager.save_config(self.config)
 
         if self.config.get('enable_web_server', False):
@@ -286,6 +293,27 @@ class PhotomatonApp:
         # On détruit l'écran de configuration pour laisser place à l'interface principale
         self.config_frame.destroy()
         self.show_home_screen()
+
+    def switch_to_hotspot(self) -> None:
+        """Active le hotspot Wi-Fi du photomaton (nécessaire pour l'imprimante Wi-Fi)."""
+        ssid = self.config.get('hotspot_ssid', 'photomaton')
+        password = self.config.get('hotspot_password', '')
+        self.show_notification(f"Connexion au réseau Wi-Fi '{ssid}' pour l'impression...", 'info', duration=30000)
+        self.master.update()
+
+        try:
+            success, ip, message = network_manager.start_hotspot(ssid, password)
+        except Exception as e:
+            success, ip, message = False, None, f"Erreur lors de l'activation du hotspot : {e}"
+        print(("INFO: " if success else "ERREUR: ") + message)
+
+        if success:
+            if ip:
+                # L'adresse du hotspot sert aussi au QR code de téléchargement
+                self.config['web_server_ip'] = ip
+            self.show_notification(f"Réseau Wi-Fi '{ssid}' actif.", 'success')
+        else:
+            self.show_notification(f"Impossible d'activer le réseau '{ssid}' : l'impression risque d'échouer.", 'error', duration=6000)
 
     def clear_buttons(self) -> None:
         """Nettoie la zone des boutons."""
@@ -504,7 +532,12 @@ class PhotomatonApp:
         for i in range(self.config.get('countdown_seconds', 5), 0, -1):
             self.countdown_label.config(text=str(i))
             self.master.update()
-            time.sleep(1)
+            start = time.time()
+            if i == 1:
+                # Bascule du live view reflex vers le mode capture pendant le dernier chiffre,
+                # pour que le déclenchement suive immédiatement la fin du décompte.
+                camera_manager.prepare_capture()
+            time.sleep(max(0, 1 - (time.time() - start)))
         
         self.countdown_label.config(text="")
         self.master.update()
@@ -1048,7 +1081,12 @@ if __name__ == "__main__":
         for i in range(self.config.get('countdown_seconds', 5), 0, -1):
             self.countdown_label.config(text=str(i))
             self.master.update()
-            time.sleep(1)
+            start = time.time()
+            if i == 1:
+                # Bascule du live view reflex vers le mode capture pendant le dernier chiffre,
+                # pour que le déclenchement suive immédiatement la fin du décompte.
+                camera_manager.prepare_capture()
+            time.sleep(max(0, 1 - (time.time() - start)))
         
         self.countdown_label.config(text="")
         self.master.update()

@@ -21,6 +21,10 @@ LIVE_VIEW_SOURCE: str = 'webcam'
 _dslr_reader_thread: threading.Thread | None = None
 _dslr_latest_frame: np.ndarray | None = None
 _dslr_frame_lock = threading.Lock()
+# Instant (time.time()) où le live view a été mis en pause en vue d'une capture, sinon None
+_live_view_paused_at: float | None = None
+# Délai laissé au reflex pour quitter le mode live view avant de déclencher
+DSLR_MODE_SWITCH_DELAY: float = 1.0
 
 def free_usb_device():
     """Tente de tuer les processus gvfs qui bloquent l'accès à la caméra USB."""
@@ -63,8 +67,9 @@ def init_camera(camera_index: int = 0, start_live_view: bool = True) -> bool:
     tourner le live view du reflex), par exemple au démarrage pendant l'écran de configuration.
     Retourne True si au moins un des deux est disponible.
     """
-    global cap, IS_DSLR_CONNECTED, IS_WEBCAM_AVAILABLE, LIVE_VIEW_SOURCE
+    global cap, IS_DSLR_CONNECTED, IS_WEBCAM_AVAILABLE, LIVE_VIEW_SOURCE, _live_view_paused_at
 
+    _live_view_paused_at = None
     # 0. Libérer les ressources d'une éventuelle initialisation précédente
     stop_dslr_live_view()
     if cap is not None:
@@ -225,6 +230,17 @@ def get_dslr_frame() -> np.ndarray | None:
     with _dslr_frame_lock:
         return _dslr_latest_frame
 
+def prepare_capture() -> None:
+    """
+    À appeler pendant le décompte, juste avant la capture : arrête le live view du reflex
+    pour que le boîtier ait le temps de changer de mode avant le déclenchement.
+    Sans effet si le retour vidéo vient de la webcam.
+    """
+    global _live_view_paused_at
+    if LIVE_VIEW_SOURCE == 'dslr' and _live_view_paused_at is None:
+        stop_dslr_live_view()
+        _live_view_paused_at = time.time()
+
 def take_picture(save_folder: str = 'photos') -> str | None:
     """
     Prend une photo. Utilise l'appareil reflex (DSLR) si disponible, sinon la webcam.
@@ -240,13 +256,20 @@ def take_picture(save_folder: str = 'photos') -> str | None:
 
 def take_picture_with_dslr(save_folder: str) -> str | None:
     """Prend une photo avec l'appareil reflex via gphoto2."""
+    global _live_view_paused_at
     print("Déclenchement de la capture avec l'appareil reflex...")
-    
-    # IMPORTANT: Si le live view est actif, il faut l'arrêter car il monopolise l'USB
+
+    # IMPORTANT: le live view monopolise l'USB, il doit être arrêté avant la capture.
+    # Idéalement c'est déjà fait pendant le décompte (prepare_capture) ; sinon on le fait ici.
     was_live_view_active = (LIVE_VIEW_SOURCE == 'dslr')
-    if was_live_view_active:
-        stop_dslr_live_view()
-        time.sleep(1) # Laisser un peu de temps à la caméra pour changer de mode
+    if was_live_view_active and _live_view_paused_at is None:
+        prepare_capture()
+    if _live_view_paused_at is not None:
+        # Laisser au boîtier le temps restant pour changer de mode
+        remaining = DSLR_MODE_SWITCH_DELAY - (time.time() - _live_view_paused_at)
+        if remaining > 0:
+            time.sleep(remaining)
+        _live_view_paused_at = None
 
     free_usb_device()
     filepath = None
